@@ -1,0 +1,3332 @@
+@font-face {
+  font-family: "Stapel";
+  src: url("./assets/fonts/Stapel_Medium.otf") format("opentype");
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+
+:root {
+  --bg: #eff1f4;
+  --white: #ffffff;
+  --text-primary: #0c131d;
+  --text-secondary: #5a6472;
+  --text-tertiary: #9ea9b7;
+  --brand: #0c73fe;
+  --orange: #fa742d;
+  --orange-dark: #f25122;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: #dfe3ea;
+  font-family: "SF Pro Text", "Inter", -apple-system, BlinkMacSystemFont, sans-serif;
+  color: var(--text-primary);
+}
+
+.app-root {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.phone-frame {
+  width: 390px;
+  height: 844px;
+  background: var(--bg);
+  border-radius: 0;
+  overflow: hidden;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+}
+
+.content-scroll {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+  padding-bottom: 16px;
+}
+
+.content-scroll[hidden] {
+  display: none;
+}
+
+.phone-frame.is-profile .screen-main {
+  display: none;
+}
+
+/* Hero — 1:1 from Figma 5812:15827 */
+.hero {
+  position: relative;
+  width: 390px;
+  height: 240px;
+  background: var(--brand);
+  border-bottom-left-radius: 24px;
+  border-bottom-right-radius: 24px;
+  color: var(--white);
+  flex: 0 0 240px;
+  overflow: hidden;
+}
+
+.hero-title {
+  position: absolute;
+  top: 53px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 350px;
+  margin: 0;
+  text-align: center;
+  font-family: "Stapel", "SF Pro Display", -apple-system, BlinkMacSystemFont, "Inter", sans-serif;
+  font-weight: 500;
+  font-style: normal;
+  font-size: 26px;
+  line-height: 1.1;
+  color: var(--white);
+  letter-spacing: 0;
+}
+
+.search-card {
+  position: absolute;
+  left: 16px;
+  bottom: 16px;
+  width: 358px;
+  height: 97px;
+  background: var(--white);
+  border-radius: 16px;
+}
+
+.search-icon {
+  position: absolute;
+  left: 12px;
+  top: calc(50% - 0.5px);
+  transform: translateY(-50%);
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #0c131d;
+}
+
+.search-icon svg {
+  width: 24px;
+  height: 24px;
+  display: block;
+}
+
+.search-row {
+  position: absolute;
+  left: 0;
+  width: 350px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  padding: 0 12px 0 48px;
+}
+
+.search-row-top {
+  top: 0;
+}
+
+.search-row-bottom {
+  top: 49px;
+}
+
+.search-text {
+  font-family: "SF Pro Text", "Inter", -apple-system, BlinkMacSystemFont, sans-serif;
+  font-size: 15px;
+  letter-spacing: -0.408px;
+  line-height: 1.2;
+  font-weight: 600;
+}
+
+.search-text.strong {
+  color: var(--text-primary);
+}
+
+.search-text.muted {
+  color: var(--text-tertiary);
+}
+
+.search-cursor {
+  position: absolute;
+  left: 48px;
+  top: calc(50% - 9px);
+  width: 2px;
+  height: 18px;
+  background: var(--brand);
+}
+
+.search-divider {
+  position: absolute;
+  top: 47px;
+  left: calc(50% + 14px);
+  transform: translateX(-50%);
+  width: 290px;
+  height: 1px;
+  background: rgba(17, 33, 56, 0.12);
+}
+
+.services {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 6px;
+  padding: 0 16px;
+  margin-top: -2px;
+}
+
+.service-item {
+  background: var(--white);
+  border-radius: 16px;
+  height: 70px;
+  text-align: center;
+  position: relative;
+  padding-top: 28px;
+}
+
+.service-item p {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 17px;
+}
+
+.sticker-icon {
+  position: absolute;
+  top: -12px;
+  left: 50%;
+  width: 36px;
+  height: 36px;
+  transform: translateX(-50%);
+}
+
+/* Hot tickets — 1:1 from Figma 5396:21954 */
+.hot-tickets {
+  margin: 0 16px;
+  width: 358px;
+  background: var(--orange);
+  border-radius: 20px;
+  padding: 20px 12px 12px;
+  color: var(--white);
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.hot-fire {
+  position: absolute;
+  right: 16px;
+  top: 16px;
+  width: 84px;
+  height: 84px;
+  display: block;
+  pointer-events: none;
+  object-fit: contain;
+}
+
+.hot-title {
+  width: 242px;
+  padding-left: 4px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  color: var(--white);
+  position: relative;
+  z-index: 1;
+}
+
+.hot-title h2 {
+  margin: 0;
+  font-family: "SF Pro Display", "Stapel", -apple-system, BlinkMacSystemFont, sans-serif;
+  font-weight: 800;
+  font-size: 23px;
+  line-height: 28px;
+  letter-spacing: -0.1px;
+}
+
+.hot-subtitle {
+  margin: 0;
+  font-family: "SF Pro Text", "Inter", sans-serif;
+  font-weight: 400;
+  font-size: 15px;
+  line-height: 18px;
+  letter-spacing: -0.23px;
+}
+
+.tickets-row {
+  display: flex;
+  gap: 8px;
+  width: 346px;
+  margin-left: -2px; /* slight overflow to peek 2nd card like in Figma */
+  overflow: hidden;
+  align-items: flex-end;
+}
+
+.ticket-card {
+  width: 316px;
+  flex: 0 0 316px;
+  background: var(--white);
+  border-radius: 20px;
+  padding: 12px 12px 12px 16px;
+  color: var(--text-primary);
+  position: relative;
+  margin-top: 10px; /* room for the badge that sticks above */
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.ticket-card-peek {
+  opacity: 1;
+}
+
+.ticket-badge {
+  position: absolute;
+  top: -10px;
+  left: 12px;
+  display: inline-flex;
+  align-items: center;
+  min-height: 20px;
+  padding: 0 8px;
+  background: var(--orange-dark);
+  color: var(--white);
+  border-radius: 20px;
+  font-family: "Inter", "SF Pro Text", sans-serif;
+  font-weight: 600;
+  font-size: 13px;
+  line-height: 17px;
+}
+
+.ticket-topbar {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding-left: 2px;
+}
+
+.ticket-prices {
+  flex: 1 1 auto;
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  padding-top: 6px;
+  min-width: 0;
+}
+
+.price-current {
+  font-family: "Inter", "SF Pro Display", sans-serif;
+  font-weight: 700;
+  font-size: 23px;
+  line-height: 30px;
+  color: var(--text-primary);
+  white-space: nowrap;
+}
+
+.price-old {
+  font-family: "Inter", "SF Pro Text", sans-serif;
+  font-weight: 400;
+  font-size: 17px;
+  line-height: 22px;
+  color: var(--text-secondary);
+  text-decoration: line-through;
+  white-space: nowrap;
+}
+
+.fav-btn {
+  flex: 0 0 36px;
+  width: 36px;
+  height: 36px;
+  border: 0;
+  background: rgba(67, 83, 106, 0.08);
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  padding: 0;
+}
+
+.fav-btn img {
+  width: 16px;
+  height: 16px;
+}
+
+.ticket-route {
+  margin: 0;
+  padding-bottom: 4px;
+  font-family: "Inter", "SF Pro Text", sans-serif;
+  font-weight: 600;
+  font-size: 13px;
+  line-height: 17px;
+  color: var(--text-primary);
+}
+
+.ticket-itinerary {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+}
+
+.airline-logo {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid var(--white);
+  flex: 0 0 24px;
+  margin-top: 4px;
+}
+
+.ticket-dates {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  flex: 0 0 auto;
+  padding-top: 4px;
+}
+
+.dates-row {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  height: 17px;
+}
+
+.dates-day {
+  font-family: "Inter", "SF Pro Text", sans-serif;
+  font-weight: 400;
+  font-size: 13px;
+  line-height: 17px;
+  color: var(--text-primary);
+  white-space: nowrap;
+}
+
+.dates-time {
+  font-family: "Inter", "SF Pro Text", sans-serif;
+  font-weight: 400;
+  font-size: 13px;
+  line-height: 17px;
+  color: var(--text-tertiary);
+  white-space: nowrap;
+}
+
+.dash {
+  flex: 1 1 auto;
+  height: 1px;
+  background: rgba(12, 20, 32, 0.24);
+}
+
+.dash-small {
+  flex: 0 0 8px;
+}
+
+.ticket-stops {
+  margin: 0;
+  padding-top: 4px;
+  flex: 1 1 auto;
+  font-family: "Inter", "SF Pro Text", sans-serif;
+  font-weight: 400;
+  font-size: 13px;
+  line-height: 17px;
+  color: var(--text-primary);
+}
+
+.ticket-stops .slash {
+  color: var(--text-tertiary);
+}
+
+.hot-btn {
+  width: 100%;
+  min-height: 48px;
+  border: 0;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.16);
+  color: var(--white);
+  font-family: "Inter", "SF Pro Text", sans-serif;
+  font-size: 17px;
+  font-weight: 600;
+  line-height: 22px;
+  cursor: pointer;
+  padding: 12px 16px;
+}
+
+.russia-section {
+  margin: 0 16px;
+  border-radius: 20px;
+  background: var(--white);
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.russia-section h3 {
+  display: block;
+  width: 100%;
+  margin: 0;
+  font-family: "SF Pro Display", -apple-system, BlinkMacSystemFont, "Inter", sans-serif;
+  font-weight: 900;
+  font-size: 23px;
+  line-height: 1.2;
+  letter-spacing: -0.1px;
+  color: var(--text-primary);
+}
+
+.places-row {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-width: none;
+  margin: 0 -4px;
+  padding: 0 4px 4px;
+  scroll-snap-type: x mandatory;
+}
+
+.places-row::-webkit-scrollbar {
+  display: none;
+}
+
+.place-card {
+  flex: 0 0 140px;
+  width: 140px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  scroll-snap-align: start;
+}
+
+.place-photo {
+  width: 140px;
+  height: 140px;
+  object-fit: cover;
+  border-radius: 16px;
+  display: block;
+}
+
+.place-title {
+  margin: 4px 0 0;
+  font-family: "SF Pro Text", "Inter", sans-serif;
+  font-weight: 600;
+  font-size: 14px;
+  line-height: 18px;
+  color: var(--text-primary);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.place-city {
+  margin: 0;
+  font-family: "SF Pro Text", "Inter", sans-serif;
+  font-weight: 400;
+  font-size: 13px;
+  line-height: 17px;
+  color: var(--text-tertiary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.place-price {
+  margin: 2px 0 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-family: "SF Pro Text", "Inter", sans-serif;
+  font-weight: 600;
+  font-size: 13px;
+  line-height: 17px;
+  color: var(--brand);
+}
+
+.place-plane {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 12px;
+  height: 12px;
+  color: var(--brand);
+}
+
+.place-plane svg {
+  width: 12px;
+  height: 12px;
+  display: block;
+}
+
+.places-btn {
+  width: 100%;
+  min-height: 44px;
+  border: 0;
+  border-radius: 14px;
+  background: rgba(17, 33, 56, 0.06);
+  color: var(--text-primary);
+  font-family: "SF Pro Text", "Inter", sans-serif;
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 20px;
+  cursor: pointer;
+  padding: 12px 16px;
+}
+
+.tabbar {
+  flex: 0 0 83px;
+  height: 83px;
+  background: var(--white);
+  border-top: 0.5px solid rgba(12, 20, 32, 0.14);
+  display: flex;
+  align-items: stretch;
+  padding: 4px 0 0;
+  position: relative;
+  z-index: 2;
+}
+
+.tab {
+  flex: 1;
+  border: 0;
+  background: transparent;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 3px;
+  color: #5a6472;
+  opacity: 0.6;
+  font-size: 10px;
+  line-height: 12px;
+  font-family: "SF Pro Text", "Inter", sans-serif;
+  padding: 6px 0 0;
+}
+
+.tab .icon-24 {
+  width: 30px;
+  height: 30px;
+  object-fit: contain;
+}
+
+.tab svg.icon-24 {
+  display: block;
+  color: inherit;
+}
+
+.tab.active {
+  opacity: 1;
+  color: var(--brand);
+}
+
+.tab.profile-tab,
+.tab#ticketsTab {
+  cursor: pointer;
+}
+
+.tab:not(.profile-tab):not(#ticketsTab) {
+  pointer-events: none;
+}
+
+.home-indicator {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  bottom: 8px;
+  width: 134px;
+  height: 5px;
+  border-radius: 100px;
+  background: #000;
+}
+
+.icon-24 {
+  width: 24px;
+  height: 24px;
+}
+
+.icon-16 {
+  width: 16px;
+  height: 16px;
+}
+
+/* ===== Profile screen ===== */
+
+.screen-profile {
+  gap: 24px;
+  padding: 16px 0 16px;
+  background: var(--bg);
+}
+
+.profile-header {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 0 20px;
+}
+
+.profile-name {
+  margin: 0;
+  font-family: "SF Pro Display", -apple-system, BlinkMacSystemFont, "Inter", sans-serif;
+  font-weight: 700;
+  font-size: 34px;
+  line-height: 1.3;
+  letter-spacing: 0;
+  color: var(--text-primary);
+}
+
+.profile-email-row {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.profile-email {
+  font-family: "SF Pro Text", "Inter", sans-serif;
+  font-weight: 500;
+  font-size: 16px;
+  line-height: 1.3;
+  color: var(--brand);
+}
+
+.profile-pencil {
+  width: 16px;
+  height: 16px;
+  display: block;
+}
+
+.profile-content {
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+  padding: 0 16px;
+}
+
+.profile-cards {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* Booking card */
+
+.booking-card {
+  background: var(--white);
+  border-radius: 16px;
+  display: flex;
+  flex-direction: column;
+}
+
+.booking-card[role="button"] {
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.booking-card[role="button"]:focus-visible {
+  outline: 2px solid var(--brand);
+  outline-offset: 2px;
+}
+
+.booking-card[role="button"]:active {
+  background: rgba(76, 84, 97, 0.04);
+}
+
+.booking-card-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px 16px 0;
+}
+
+.booking-badge {
+  display: inline-flex;
+  align-items: center;
+  min-height: 20px;
+  padding: 0 8px;
+  background: rgba(12, 115, 254, 0.1);
+  color: var(--brand);
+  border-radius: 100px;
+  font-family: "SF Pro Text", "Inter", sans-serif;
+  font-weight: 500;
+  font-size: 14px;
+  line-height: 18px;
+}
+
+.booking-card-header .chevron-right {
+  margin-left: auto;
+  width: 16px;
+  height: 16px;
+  display: block;
+}
+
+.booking-card-text {
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.booking-title {
+  margin: 0;
+  font-family: "SF Pro Display", -apple-system, BlinkMacSystemFont, "Inter", sans-serif;
+  font-weight: 700;
+  font-size: 20px;
+  line-height: 26px;
+  letter-spacing: 0;
+  color: var(--text-primary);
+}
+
+.booking-meta {
+  margin: 0;
+  display: inline-flex;
+  align-items: baseline;
+  gap: 4px;
+  font-family: "SF Pro Text", "Inter", sans-serif;
+  font-weight: 400;
+  font-size: 16px;
+  line-height: 21px;
+  color: var(--text-primary);
+}
+
+.booking-meta .dot {
+  color: var(--text-tertiary);
+}
+
+/* Settings card */
+
+.settings-card {
+  background: var(--white);
+  border-radius: 12px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.settings-head {
+  min-height: 48px;
+  padding: 16px 16px 12px;
+  display: flex;
+  align-items: center;
+}
+
+.settings-title {
+  margin: 0;
+  font-family: "SF Pro Display", -apple-system, BlinkMacSystemFont, "Inter", sans-serif;
+  font-weight: 700;
+  font-size: 18px;
+  line-height: 23px;
+  color: var(--text-primary);
+}
+
+.settings-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 48px;
+  padding: 12px 16px;
+  background: transparent;
+  border: 0;
+  cursor: pointer;
+  width: 100%;
+  text-align: left;
+}
+
+.settings-icon {
+  flex: 0 0 24px;
+  width: 24px;
+  height: 24px;
+  display: block;
+}
+
+.settings-label {
+  flex: 1 1 auto;
+  font-family: "SF Pro Text", "Inter", sans-serif;
+  font-weight: 400;
+  font-size: 18px;
+  line-height: 23px;
+  color: var(--text-primary);
+}
+
+.settings-row .chevron-right.small {
+  width: 16px;
+  height: 16px;
+  display: block;
+  flex: 0 0 16px;
+}
+
+.settings-divider {
+  height: 1px;
+  margin-left: 16px;
+  background: rgba(12, 20, 32, 0.06);
+}
+
+/* Smart support card */
+
+.support-card {
+  background: var(--white);
+  border-radius: 12px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.support-text {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.support-title-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.support-icon {
+  width: 24px;
+  height: 24px;
+  display: block;
+}
+
+.support-title {
+  margin: 0;
+  font-family: "SF Pro Display", -apple-system, BlinkMacSystemFont, "Inter", sans-serif;
+  font-weight: 700;
+  font-size: 18px;
+  line-height: 23px;
+  color: var(--text-primary);
+}
+
+.support-desc {
+  margin: 0;
+  font-family: "SF Pro Text", "Inter", sans-serif;
+  font-weight: 400;
+  font-size: 14px;
+  line-height: 18px;
+  color: var(--text-secondary);
+}
+
+.support-btn {
+  width: 100%;
+  min-height: 36px;
+  border: 0;
+  border-radius: 12px;
+  background: rgba(67, 83, 106, 0.08);
+  color: var(--text-primary);
+  font-family: "SF Pro Text", "Inter", sans-serif;
+  font-weight: 500;
+  font-size: 16px;
+  line-height: 21px;
+  cursor: pointer;
+  padding: 6px 12px;
+}
+
+/* Documents card */
+
+.docs-card {
+  background: var(--white);
+  border-radius: 12px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.docs-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.docs-title {
+  margin: 0;
+  font-family: "SF Pro Display", -apple-system, BlinkMacSystemFont, "Inter", sans-serif;
+  font-weight: 700;
+  font-size: 18px;
+  line-height: 23px;
+  color: var(--text-primary);
+}
+
+.docs-add {
+  width: 24px;
+  height: 24px;
+  border: 0;
+  background: transparent;
+  padding: 0;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.docs-add svg {
+  width: 24px;
+  height: 24px;
+  display: block;
+}
+
+.docs-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.doc-tile {
+  position: relative;
+  background: rgba(76, 84, 97, 0.04);
+  border-radius: 10px;
+  height: 59px;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.doc-tile-warning {
+  background: rgba(255, 170, 24, 0.1);
+}
+
+.doc-subtitle {
+  margin: 0;
+  font-family: "SF Pro Text", "Inter", sans-serif;
+  font-weight: 400;
+  font-size: 12px;
+  line-height: 1.3;
+  letter-spacing: 0.4px;
+  color: var(--text-secondary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  padding-right: 28px;
+}
+
+.doc-subtitle.warning {
+  color: #ffaa18;
+}
+
+.doc-name {
+  margin: 0;
+  font-family: "SF Pro Text", "Inter", sans-serif;
+  font-weight: 500;
+  font-size: 14px;
+  line-height: 1.3;
+  color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.doc-icon {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 24px;
+  height: 24px;
+  display: block;
+}
+
+/* ===== Smart support chat screen ===== */
+
+.screen-support {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 83px; /* sit on top of the tabbar */
+  background: var(--bg);
+  display: flex;
+  flex-direction: column;
+  padding-top: 24px;
+  z-index: 3;
+  transform: translateX(100%);
+  transition: transform 300ms cubic-bezier(0.32, 0.72, 0, 1);
+  pointer-events: none;
+}
+
+.phone-frame.is-support .screen-support {
+  transform: translateX(0);
+  pointer-events: auto;
+}
+
+.support-navbar {
+  flex: 0 0 auto;
+  height: 44px;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px 0;
+}
+
+.support-back {
+  position: absolute;
+  left: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 10px 12px 10px 8px;
+  background: transparent;
+  border: 0;
+  cursor: pointer;
+}
+
+.support-back img {
+  width: 24px;
+  height: 24px;
+  display: block;
+  transform: scaleX(-1);
+}
+
+.support-navtitle {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  text-align: center;
+  line-height: 1.2;
+  padding: 4px 0;
+  width: 288px;
+  max-width: 100%;
+}
+
+.support-navtitle-main {
+  margin: 0;
+  font-family: "SF Pro Text", "Inter", sans-serif;
+  font-weight: 600;
+  font-size: 17px;
+  line-height: 1.2;
+  letter-spacing: -0.408px;
+  color: var(--text-primary);
+}
+
+.support-navtitle-sub {
+  margin: 0;
+  font-family: "SF Pro Text", "Inter", sans-serif;
+  font-weight: 400;
+  font-size: 13px;
+  line-height: 1.2;
+  letter-spacing: -0.078px;
+  color: var(--text-secondary);
+}
+
+.support-chat {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scroll-padding-top: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 16px 16px 16px;
+}
+
+.support-chat > .chat-bubbles {
+  margin-top: auto;
+}
+
+.chat-bubbles {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  align-items: flex-start;
+  width: 100%;
+}
+
+.chat-bubble {
+  background: var(--white);
+  border-radius: 20px;
+  padding: 12px 16px;
+  font-family: "SF Pro Text", "Inter", sans-serif;
+  font-weight: 400;
+  font-size: 17px;
+  line-height: 26px;
+  letter-spacing: -0.43px;
+  color: var(--text-primary);
+  align-self: flex-start;
+  width: fit-content;
+  max-width: 100%;
+}
+
+.chat-bubble-user {
+  background: var(--brand);
+  color: var(--white);
+  align-self: flex-end;
+  width: fit-content;
+  max-width: 334px;
+}
+
+/* Rich bot bubbles: multi-paragraph + inline bold.
+   Scoped to DIRECT children only so nested paragraphs (e.g. inside .order-card)
+   keep their own margins. */
+.chat-bubble > p:not(.summary-intro) {
+  margin: 0 0 12px;
+  font-family: "SF Pro Text", "Inter", sans-serif;
+  font-weight: 400;
+  font-size: 17px;
+  line-height: 26px;
+  letter-spacing: -0.43px;
+  color: var(--text-primary);
+}
+
+.chat-bubble > p:not(.summary-intro):last-child {
+  margin-bottom: 0;
+}
+
+.chat-bubble strong {
+  font-family: "Inter", "SF Pro Display", sans-serif;
+  font-weight: 600;
+}
+
+.chat-bubble .bot-link {
+  color: var(--brand);
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.chat-bubble .bot-link:hover {
+  text-decoration: underline;
+}
+
+.chat-bubble > ul.bot-rich-list {
+  list-style: none;
+  margin: 0 0 20px;
+  padding: 0;
+}
+
+.chat-bubble > ol.bot-steps {
+  list-style: none;
+  margin: 0 0 20px;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.chat-bubble > ol.bot-steps .bot-step {
+  display: grid;
+  grid-template-columns: 16px 1fr;
+  column-gap: 8px;
+  align-items: start;
+  font-family: "SF Pro Text", "Inter", sans-serif;
+  font-weight: 400;
+  font-size: 17px;
+  line-height: 26px;
+  letter-spacing: -0.43px;
+  color: var(--text-primary);
+}
+
+.chat-bubble > ol.bot-steps .bot-step-num {
+  color: #5a6472;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.chat-bubble > ul.bot-rich-list li {
+  position: relative;
+  padding-left: 24px;
+  font-family: "SF Pro Text", "Inter", sans-serif;
+  font-weight: 400;
+  font-size: 17px;
+  line-height: 26px;
+  letter-spacing: -0.43px;
+  color: var(--text-primary);
+}
+
+.chat-bubble > ul.bot-rich-list li::before {
+  content: "";
+  position: absolute;
+  left: 6px;
+  top: 10px;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--text-tertiary);
+}
+
+/* Different bubble types in a row: 16px between them (8px gap + 8px margin). */
+.chat-bubble:not(.chat-bubble-user) + .chat-bubble-user,
+.chat-bubble-user + .chat-bubble:not(.chat-bubble-user) {
+  margin-top: 8px;
+}
+
+/* User bubble carrying attached files */
+.chat-bubble-files {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  align-items: flex-start;
+  padding: 12px 16px;
+}
+
+.user-files {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  width: 100%;
+}
+
+.user-file {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 12px 6px 8px;
+  border-radius: 12px;
+  min-width: 0;
+}
+
+.user-file-icon {
+  flex: 0 0 24px;
+  width: 24px;
+  height: 24px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--white);
+}
+
+.user-file-icon svg {
+  width: 14px;
+  height: 18px;
+  display: block;
+}
+
+.user-file-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  flex: 1 1 auto;
+  font-family: "SF Pro Text", "Inter", sans-serif;
+  color: var(--white);
+}
+
+.user-file-name-row {
+  display: flex;
+  align-items: center;
+  font-weight: 400;
+  font-size: 17px;
+  line-height: 20px;
+  letter-spacing: -0.43px;
+  white-space: nowrap;
+  min-width: 0;
+}
+
+.user-file-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
+}
+
+.user-file-ext {
+  flex: 0 0 auto;
+}
+
+.user-file-size {
+  font-weight: 400;
+  font-size: 13px;
+  line-height: 16px;
+  letter-spacing: -0.08px;
+  opacity: 0.7;
+}
+
+.user-files-text {
+  margin: 0;
+  font-family: "SF Pro Text", "Inter", sans-serif;
+  font-weight: 400;
+  font-size: 17px;
+  line-height: 26px;
+  letter-spacing: -0.43px;
+  color: var(--white);
+}
+
+/* Bot summary widget — recap of the request */
+.chat-summary {
+  align-self: stretch;
+  width: auto;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.summary-intro {
+  margin: 0;
+  padding: 0 4px;
+  font-family: "SF Pro Text", "Inter", sans-serif;
+  font-weight: 400;
+  font-size: 17px;
+  line-height: 26px;
+  letter-spacing: -0.43px;
+  color: var(--text-primary);
+}
+
+.summary-section {
+  padding: 0 4px;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.summary-label {
+  margin: 0;
+  font-family: "Inter", "SF Pro Display", sans-serif;
+  font-weight: 600;
+  font-size: 17px;
+  line-height: 22px;
+  letter-spacing: -0.43px;
+  color: var(--text-primary);
+}
+
+.summary-value {
+  margin: 0;
+  font-family: "SF Pro Text", "Inter", sans-serif;
+  font-weight: 400;
+  font-size: 17px;
+  line-height: 25px;
+  letter-spacing: -0.43px;
+  color: var(--text-primary);
+  word-break: break-word;
+}
+
+/* ===== Bot widgets (rich bubbles) ===== */
+
+.chat-widget {
+  align-self: stretch;
+  width: auto;
+  padding: 12px 16px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.widget-intro {
+  margin: 0 0 12px;
+  font-family: "SF Pro Text", "Inter", sans-serif;
+  font-weight: 400;
+  font-size: 17px;
+  line-height: 26px;
+  letter-spacing: -0.43px;
+  color: var(--text-primary);
+}
+
+.widget-question {
+  margin: 0;
+  font-family: "Inter", "SF Pro Display", sans-serif;
+  font-weight: 600;
+  font-size: 17px;
+  line-height: 22px;
+  letter-spacing: -0.43px;
+  color: var(--text-primary);
+}
+
+.widget-orders {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+}
+
+.order-card {
+  background: rgba(76, 84, 97, 0.04);
+  border-radius: 16px;
+  padding: 12px 16px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+}
+
+.order-card-button {
+  border: 0;
+  text-align: left;
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+}
+
+.order-card-button:hover {
+  background: rgba(76, 84, 97, 0.08);
+}
+
+.order-badge {
+  display: inline-flex;
+  align-self: flex-start;
+  align-items: center;
+  min-height: 20px;
+  padding: 0 8px;
+  background: rgba(146, 192, 255, 0.28);
+  color: #0a64dd;
+  border-radius: 100px;
+  font-family: "SF Pro Text", "Inter", sans-serif;
+  font-weight: 600;
+  font-size: 13px;
+  line-height: 16px;
+  letter-spacing: -0.08px;
+}
+
+.order-card-row {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  width: 100%;
+}
+
+.order-details {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 1 1 0;
+  min-width: 0;
+}
+
+.order-airline-logo {
+  flex: 0 0 24px;
+  width: 24px;
+  height: 24px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  overflow: hidden;
+  background: rgba(67, 83, 106, 0.08);
+}
+
+.order-airline-logo img {
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: cover;
+}
+
+.order-title {
+  margin: 0;
+  font-family: "Inter", "SF Pro Display", sans-serif;
+  font-weight: 600;
+  font-size: 15px;
+  line-height: 19px;
+  color: var(--text-primary);
+}
+
+.order-date {
+  margin: 0;
+  font-family: "SF Pro Text", "Inter", sans-serif;
+  font-weight: 400;
+  font-size: 15px;
+  line-height: 18px;
+  letter-spacing: -0.23px;
+  color: var(--text-primary);
+}
+
+.widget-btn {
+  width: 100%;
+  min-height: 48px;
+  background: rgba(67, 83, 106, 0.08);
+  border: 0;
+  border-radius: 16px;
+  padding: 12px 16px;
+  font-family: "SF Pro Text", "Inter", sans-serif;
+  font-weight: 600;
+  font-size: 17px;
+  line-height: 20px;
+  letter-spacing: -0.43px;
+  color: var(--text-primary);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+.widget-btn-icon {
+  width: 24px;
+  height: 24px;
+  flex-shrink: 0;
+  display: block;
+  color: inherit;
+}
+
+/* Plain paragraphs inside any widget text block — handles the new attach widget
+   without disturbing .widget-intro / .widget-question which have their own fonts. */
+.widget-text > p {
+  margin: 0 0 12px;
+}
+
+.widget-text > p:last-child {
+  margin-bottom: 0;
+}
+
+/* ===== Orders modal (bottom sheet) ===== */
+
+.orders-modal {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 20;
+  pointer-events: none;
+  visibility: hidden;
+  transition: visibility 0s linear 320ms;
+}
+
+.orders-modal.is-open {
+  pointer-events: auto;
+  visibility: visible;
+  transition: visibility 0s linear 0s;
+}
+
+.orders-backdrop {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  opacity: 0;
+  transition: opacity 240ms ease;
+}
+
+.orders-modal.is-open .orders-backdrop {
+  opacity: 1;
+}
+
+.orders-sheet {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  height: 100%;
+  background: #ffffff;
+  border-top-left-radius: 10px;
+  border-top-right-radius: 10px;
+  display: flex;
+  flex-direction: column;
+  transform: translate3d(0, 100%, 0);
+  transition: transform 320ms cubic-bezier(0.32, 0.72, 0.32, 1);
+  overflow: hidden;
+}
+
+.orders-modal.is-open .orders-sheet {
+  transform: translate3d(0, 0, 0);
+}
+
+.orders-statusbar {
+  flex: 0 0 24px;
+  background: #000;
+}
+
+.orders-handle {
+  align-self: center;
+  margin: 5px 0 0;
+  width: 36px;
+  height: 5px;
+  border-radius: 2.5px;
+  background: rgba(12, 20, 32, 0.24);
+}
+
+.orders-navbar {
+  position: relative;
+  height: 44px;
+  flex: 0 0 44px;
+}
+
+.orders-close {
+  position: absolute;
+  top: 50%;
+  right: 14px;
+  transform: translateY(-50%);
+  width: 28px;
+  height: 28px;
+  border: 0;
+  padding: 0;
+  border-radius: 50%;
+  background: rgba(67, 83, 106, 0.08);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: #5a6472;
+}
+
+.orders-close svg {
+  width: 12px;
+  height: 12px;
+  display: block;
+}
+
+.orders-title {
+  font-family: "Stapel", "SF Pro Display", "Inter", sans-serif;
+  font-weight: 700;
+  font-size: 26px;
+  line-height: 29px;
+  letter-spacing: 0;
+  color: var(--text-primary);
+  margin: 0 0 16px;
+  padding: 0 16px;
+}
+
+.orders-segmented {
+  display: flex;
+  align-items: stretch;
+  margin: 0 16px 16px;
+  padding: 2px;
+  background: rgba(115, 115, 123, 0.12);
+  border-radius: 10px;
+  min-height: 32px;
+}
+
+.orders-segment {
+  flex: 1 1 0;
+  min-height: 28px;
+  padding: 4px 8px;
+  border: 0;
+  background: transparent;
+  border-radius: 8px;
+  font-family: "SF Pro Text", "Inter", sans-serif;
+  font-weight: 600;
+  font-size: 13px;
+  line-height: 1.2;
+  letter-spacing: -0.078px;
+  color: var(--text-primary);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+}
+
+.orders-segment.is-active {
+  background: #ffffff;
+  border: 1px solid rgba(76, 84, 97, 0.04);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06);
+}
+
+.orders-segment-count {
+  color: #848f9d;
+}
+
+.orders-list {
+  flex: 1 1 auto;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 0 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.orders-list[hidden],
+.orders-empty[hidden] {
+  display: none;
+}
+
+.orders-empty {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 0 32px 100px;
+  text-align: center;
+}
+
+.orders-empty-icon {
+  width: 68px;
+  height: 54px;
+  display: block;
+}
+
+.orders-empty-text {
+  padding-top: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+}
+
+.orders-empty-title {
+  margin: 0;
+  font-family: "Inter", "SF Pro Display", sans-serif;
+  font-weight: 700;
+  font-size: 19px;
+  line-height: 25px;
+  letter-spacing: 0;
+  color: var(--text-primary);
+}
+
+.orders-empty-desc {
+  margin: 0;
+  font-family: "Inter", "SF Pro Text", sans-serif;
+  font-weight: 400;
+  font-size: 15px;
+  line-height: 22px;
+  letter-spacing: 0;
+  color: var(--text-primary);
+}
+
+.orders-home-indicator {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 34px;
+  flex: 0 0 34px;
+}
+
+.orders-home-indicator span {
+  display: block;
+  width: 134px;
+  height: 5px;
+  border-radius: 100px;
+  background: #000;
+}
+
+.chat-suggests {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: flex-end;
+  align-items: flex-start;
+  width: 100%;
+}
+
+.chat-suggest {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 36px;
+  padding: 10px 16px 10px 12px;
+  background: var(--white);
+  border: 0;
+  border-radius: 12px;
+  color: var(--brand);
+  font-family: "SF Pro Text", "Inter", sans-serif;
+  font-weight: 600;
+  font-size: 15px;
+  line-height: 18px;
+  letter-spacing: -0.23px;
+  cursor: pointer;
+}
+
+.support-input {
+  flex: 0 0 auto;
+  position: relative;
+  min-height: 52px;
+  margin: 0 8px 16px;
+  background: var(--white);
+  border: 0.5px solid rgba(67, 83, 106, 0.08);
+  border-radius: 20px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.06);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.support-input-files {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  padding: 12px 12px 0 12px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-width: none;
+}
+
+.support-input-files::-webkit-scrollbar {
+  display: none;
+}
+
+.support-input-files[hidden] {
+  display: none;
+}
+
+.support-input-row {
+  position: relative;
+  flex: 1 1 auto;
+  display: flex;
+  align-items: center;
+  min-height: 52px;
+  width: 100%;
+}
+
+.support-input-field {
+  flex: 1 1 auto;
+  min-width: 0;
+  height: 52px;
+  border: 0;
+  outline: none;
+  background: transparent;
+  padding: 0 8px 0 16px;
+  font-family: "SF Pro Text", "Inter", sans-serif;
+  font-weight: 400;
+  font-size: 17px;
+  line-height: 20px;
+  letter-spacing: -0.43px;
+  color: var(--text-primary);
+}
+
+.support-input-field::placeholder {
+  color: var(--text-secondary);
+  opacity: 1;
+}
+
+.support-send-btn {
+  position: relative;
+  flex: 0 0 52px;
+  width: 52px;
+  height: 52px;
+  background: transparent;
+  border: 0;
+  cursor: pointer;
+  padding: 0;
+  color: #848f9d;
+  transition: color 180ms ease;
+}
+
+.support-send-circle {
+  position: absolute;
+  left: 10px;
+  top: 10px;
+  width: 32px;
+  height: 32px;
+  background: rgba(76, 84, 97, 0.08);
+  border-radius: 50%;
+  transition: background 180ms ease;
+}
+
+.support-send-icon,
+.support-stop-icon {
+  position: absolute;
+  left: 14px;
+  top: 14px;
+  width: 24px;
+  height: 24px;
+  display: block;
+  color: inherit;
+  transform-origin: center;
+  transition: opacity 150ms cubic-bezier(0.25, 0.46, 0.45, 0.94),
+              transform 150ms cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+.support-stop-icon {
+  opacity: 0;
+  transform: scale(0.667); /* 16/24 */
+}
+
+.support-send-btn.is-sending .support-send-icon {
+  opacity: 0;
+  transform: scale(0.667);
+}
+
+.support-send-btn.is-sending .support-stop-icon {
+  opacity: 1;
+  transform: scale(1);
+}
+
+.support-send-btn.is-active {
+  color: var(--white);
+}
+
+.support-send-btn.is-active .support-send-circle {
+  background: var(--brand);
+}
+
+/* ===== Send-message animation: bubble fade-in, suggests fade-out, typing ===== */
+
+@keyframes chatBubbleFadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.chat-bubble.is-entering {
+  opacity: 0;
+  animation: chatBubbleFadeIn 150ms cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+}
+
+/* Sent bubble waits until the list finishes scrolling (≈150 ms) before
+   fading in over another 150 ms, with ease-in-out-cubic per spec. */
+.chat-bubble.is-entering-delayed {
+  animation-delay: 150ms;
+  animation-timing-function: cubic-bezier(0.645, 0.045, 0.355, 1);
+}
+
+.chat-suggests.is-leaving {
+  pointer-events: none;
+  animation: chatSuggestsFadeOut 150ms cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+}
+
+@keyframes chatSuggestsFadeOut {
+  from { opacity: 1; }
+  to { opacity: 0; }
+}
+
+.chat-bubble-typing {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 16px;
+  min-height: 0;
+  line-height: 0;
+}
+
+.chat-typing-dot {
+  display: block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--text-tertiary);
+  animation: chatTypingBounce 1.2s ease-in-out infinite;
+}
+
+.chat-typing-dot:nth-child(2) {
+  animation-delay: 0.15s;
+}
+
+.chat-typing-dot:nth-child(3) {
+  animation-delay: 0.3s;
+}
+
+@keyframes chatTypingBounce {
+  0%, 60%, 100% { transform: translateY(0); opacity: 0.4; }
+  30% { transform: translateY(-4px); opacity: 1; }
+}
+
+/* Attached file chips inside the input */
+.support-file {
+  display: inline-flex;
+  align-items: center;
+  background: #f7f8f9;
+  border-radius: 12px;
+  flex: 0 0 auto;
+  max-width: 208px;
+  overflow: hidden;
+}
+
+.support-file-content {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 0 8px 8px;
+  min-width: 0;
+  flex: 1 1 auto;
+}
+
+.support-file-icon {
+  flex: 0 0 24px;
+  width: 24px;
+  height: 24px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.support-file-icon svg {
+  width: 14px;
+  height: 18px;
+  display: block;
+}
+
+.support-file-text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  font-family: "SF Pro Text", "Inter", sans-serif;
+  font-weight: 400;
+  font-size: 13px;
+  line-height: 16px;
+  letter-spacing: -0.08px;
+}
+
+.support-file-name-row {
+  display: flex;
+  align-items: center;
+  color: var(--text-primary);
+  white-space: nowrap;
+  min-width: 0;
+}
+
+.support-file-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
+}
+
+.support-file-ext {
+  flex: 0 0 auto;
+}
+
+.support-file-size {
+  color: var(--text-tertiary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.support-file-remove {
+  flex: 0 0 36px;
+  width: 36px;
+  height: 36px;
+  background: transparent;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #5a6472;
+}
+
+.support-file-remove-bg {
+  width: 24px;
+  height: 24px;
+  background: rgba(67, 83, 106, 0.08);
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.support-file-remove svg {
+  width: 11px;
+  height: 11px;
+  display: block;
+  color: inherit;
+}
+
+/* ===== Order details screen (slides in from the right over Profile) ===== */
+
+.screen-orders {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 83px; /* keeps shared tabbar visible underneath */
+  background: var(--bg);
+  display: flex;
+  flex-direction: column;
+  z-index: 4;
+  transform: translateX(100%);
+  transition: transform 300ms cubic-bezier(0.32, 0.72, 0, 1);
+  pointer-events: none;
+}
+
+.phone-frame.is-orders .screen-orders {
+  transform: translateX(0);
+  pointer-events: auto;
+}
+
+.ord-navbar {
+  flex: 0 0 auto;
+  height: 44px;
+  position: relative;
+  padding: 4px 0;
+  margin-top: 24px;
+}
+
+.ord-back {
+  position: absolute;
+  left: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 10px 12px 10px 8px;
+  background: transparent;
+  border: 0;
+  cursor: pointer;
+}
+
+.ord-back img {
+  width: 24px;
+  height: 24px;
+  display: block;
+  transform: scaleX(-1);
+}
+
+.ord-nav-action {
+  position: absolute;
+  right: 4px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 44px;
+  height: 44px;
+  background: transparent;
+  border: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: var(--text-primary);
+}
+
+.ord-nav-action svg,
+.ord-nav-action img {
+  width: 24px;
+  height: 24px;
+  display: block;
+}
+
+.ord-scroll {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  padding: 16px 16px 24px;
+}
+
+.ord-main {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.ord-card {
+  background: #ffffff;
+  border-radius: 16px;
+  padding: 8px 0;
+}
+
+.ord-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  padding: 8px 12px;
+}
+
+.ord-badge {
+  display: inline-flex;
+  align-items: center;
+  min-height: 22px;
+  padding: 0 8px;
+  border-radius: 100px;
+  font-family: "SF Pro Text", "Inter", sans-serif;
+  font-weight: 600;
+  font-size: 15px;
+  line-height: 18px;
+  letter-spacing: -0.23px;
+}
+
+.ord-badge-brand {
+  background: rgba(12, 115, 254, 0.1);
+  color: var(--brand);
+}
+
+.ord-badge-green {
+  background: rgba(59, 191, 86, 0.1);
+  color: #30a748;
+}
+
+.ord-row-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 8px 16px;
+}
+
+.ord-row-header-toggle {
+  cursor: pointer;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.ord-row-text {
+  flex: 1 1 0;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  color: var(--text-primary);
+}
+
+.ord-row-title {
+  margin: 0;
+  font-family: "SF Pro Display", "SF Pro Text", "Inter", sans-serif;
+  font-weight: 700;
+  font-size: 19px;
+  line-height: 23px;
+  letter-spacing: -0.45px;
+  color: var(--text-primary);
+}
+
+.ord-row-meta {
+  margin: 0;
+  font-family: "SF Pro Text", "Inter", sans-serif;
+  font-weight: 400;
+  font-size: 15px;
+  line-height: 18px;
+  letter-spacing: -0.23px;
+  color: var(--text-primary);
+}
+
+.ord-chev-down {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding-top: 3.5px;
+  flex: 0 0 16px;
+}
+
+.ord-chev-down img {
+  width: 16px;
+  height: 16px;
+  display: block;
+  transform: rotate(90deg);
+  transition: transform 200ms ease;
+}
+
+/* Expandable list-row card (passengers) */
+.ord-list-expand.is-expanded .ord-row-meta {
+  display: none;
+}
+
+.ord-list-expand.is-expanded .ord-chev-down img {
+  transform: rotate(-90deg);
+}
+
+.ord-row-body {
+  display: flex;
+  flex-direction: column;
+  padding-bottom: 4px;
+}
+
+.ord-pax-section {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  padding: 12px 16px 12px 12px;
+}
+
+.ord-pax-icon {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 20px;
+}
+
+.ord-pax-icon svg,
+.ord-pax-icon img {
+  width: 16px;
+  height: 16px;
+  display: block;
+}
+
+.ord-pax-icon-blue {
+  background: rgba(12, 115, 254, 0.1);
+}
+
+.ord-pax-icon-purple {
+  background: rgba(161, 121, 255, 0.1);
+}
+
+.ord-pax-content {
+  flex: 1 1 0;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  color: var(--text-primary);
+}
+
+.ord-pax-head {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.ord-pax-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.ord-pax-name {
+  margin: 0;
+  font-family: "SF Pro Text", "Inter", sans-serif;
+  font-weight: 600;
+  font-size: 15px;
+  line-height: 19px;
+  letter-spacing: -0.23px;
+  color: var(--text-primary);
+  flex: 1 1 0;
+  min-width: 0;
+  word-break: break-word;
+}
+
+.ord-pax-sub {
+  margin: 0;
+  font-family: "SF Pro Text", "Inter", sans-serif;
+  font-weight: 400;
+  font-size: 13px;
+  line-height: 17px;
+  letter-spacing: -0.08px;
+  color: #5a6472;
+}
+
+.ord-pax-line {
+  margin: 0;
+  font-family: "SF Pro Text", "Inter", sans-serif;
+  font-weight: 400;
+  font-size: 15px;
+  line-height: 19px;
+  letter-spacing: -0.23px;
+  color: var(--text-primary);
+  word-break: break-word;
+}
+
+.ord-pax-doc {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.ord-pax-label {
+  margin: 0;
+  font-family: "SF Pro Text", "Inter", sans-serif;
+  font-weight: 400;
+  font-size: 13px;
+  line-height: 17px;
+  letter-spacing: -0.08px;
+  color: #5a6472;
+}
+
+.ord-pax-value {
+  margin: 0;
+  font-family: "SF Pro Text", "Inter", sans-serif;
+  font-weight: 400;
+  font-size: 15px;
+  line-height: 19px;
+  letter-spacing: -0.23px;
+  color: var(--text-primary);
+  word-break: break-word;
+}
+
+.ord-pax-divider {
+  height: 0.5px;
+  margin-left: 56px;
+  background: rgba(67, 83, 106, 0.16);
+}
+
+.ord-pax-pill {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 24px;
+  padding: 2px 12px;
+  border: 0;
+  border-radius: 12px;
+  background: rgba(67, 83, 106, 0.08);
+  font-family: "SF Pro Text", "Inter", sans-serif;
+  font-weight: 600;
+  font-size: 13px;
+  line-height: 17px;
+  letter-spacing: -0.08px;
+  color: #0c131d;
+  cursor: pointer;
+}
+
+/* ---- Itinerary ---- */
+
+.ord-itinerary {
+  display: flex;
+  flex-direction: column;
+  padding-bottom: 4px;
+}
+
+.ord-itinerary-head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+}
+
+.ord-airline-logo {
+  flex: 0 0 32px;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  overflow: hidden;
+  display: inline-flex;
+}
+
+.ord-airline-logo svg,
+.ord-airline-logo img {
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: contain;
+}
+
+.ord-airline-text {
+  flex: 1 1 0;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.ord-airline-name {
+  margin: 0;
+  font-family: "SF Pro Text", "Inter", sans-serif;
+  font-weight: 600;
+  font-size: 15px;
+  line-height: 18px;
+  letter-spacing: -0.23px;
+  color: var(--text-primary);
+}
+
+.ord-airline-time {
+  margin: 0;
+  font-family: "SF Pro Text", "Inter", sans-serif;
+  font-weight: 400;
+  font-size: 13px;
+  line-height: 16px;
+  letter-spacing: -0.08px;
+  color: var(--text-secondary);
+}
+
+.ord-pill-btn {
+  background: rgba(67, 83, 106, 0.08);
+  border: 0;
+  border-radius: 12px;
+  padding: 2px 12px;
+  min-height: 24px;
+  font-family: "SF Pro Text", "Inter", sans-serif;
+  font-weight: 600;
+  font-size: 13px;
+  line-height: 16px;
+  letter-spacing: -0.08px;
+  color: var(--text-primary);
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.ord-routes {
+  display: flex;
+  gap: 21px;
+  align-items: flex-start;
+  padding: 0 12px 12px;
+}
+
+.ord-routes-icon {
+  flex: 0 0 14px;
+  width: 14px;
+  margin-left: 9px;
+  padding-top: 2px;
+}
+
+.ord-routes-icon svg,
+.ord-routes-icon img {
+  width: 14px;
+  height: 62px;
+  display: block;
+}
+
+.ord-routes-text {
+  flex: 1 1 0;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.ord-route-row {
+  display: flex;
+  gap: 6px;
+  align-items: flex-start;
+}
+
+.ord-route-time {
+  flex: 0 0 78px;
+  width: 78px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.ord-route-hh {
+  font-family: "SF Pro Text", "Inter", sans-serif;
+  font-weight: 600;
+  font-size: 15px;
+  line-height: 18px;
+  letter-spacing: -0.23px;
+  color: var(--text-primary);
+}
+
+.ord-route-date {
+  font-family: "SF Pro Text", "Inter", sans-serif;
+  font-weight: 400;
+  font-size: 13px;
+  line-height: 16px;
+  letter-spacing: -0.08px;
+  color: var(--text-secondary);
+}
+
+.ord-route-place {
+  flex: 1 1 0;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.ord-route-city {
+  font-family: "SF Pro Text", "Inter", sans-serif;
+  font-weight: 600;
+  font-size: 15px;
+  line-height: 18px;
+  letter-spacing: -0.23px;
+  color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.ord-route-airport {
+  font-family: "SF Pro Text", "Inter", sans-serif;
+  font-weight: 400;
+  font-size: 13px;
+  line-height: 16px;
+  letter-spacing: -0.08px;
+  color: var(--text-secondary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ---- Flight card action buttons ---- */
+
+.ord-flight-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 4px 12px 8px;
+}
+
+.ord-secondary-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 48px;
+  padding: 12px 16px;
+  background: rgba(67, 83, 106, 0.08);
+  border: 0;
+  border-radius: 16px;
+  font-family: "SF Pro Text", "Inter", sans-serif;
+  font-weight: 600;
+  font-size: 17px;
+  line-height: 20px;
+  letter-spacing: -0.43px;
+  color: var(--text-primary);
+  cursor: pointer;
+}
+
+.ord-secondary-btn svg,
+.ord-secondary-btn img.ord-icon-24 {
+  width: 20px;
+  height: 20px;
+  display: block;
+  color: currentColor;
+}
+
+.ord-text-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 36px;
+  padding: 6px 12px;
+  background: transparent;
+  border: 0;
+  font-family: "SF Pro Text", "Inter", sans-serif;
+  font-weight: 600;
+  font-size: 15px;
+  line-height: 18px;
+  letter-spacing: -0.23px;
+  color: var(--brand);
+  cursor: pointer;
+}
+
+/* ---- List row card (passengers, cost) ---- */
+
+.ord-list-row {
+  padding: 8px 0;
+}
+
+/* ---- Order management card ---- */
+
+.ord-mgmt-card {
+  padding: 8px 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.ord-mgmt-header {
+  padding: 8px 16px;
+}
+
+.ord-mgmt-title {
+  margin: 0;
+  font-family: "SF Pro Display", "SF Pro Text", "Inter", sans-serif;
+  font-weight: 700;
+  font-size: 19px;
+  line-height: 23px;
+  letter-spacing: -0.45px;
+  color: var(--text-primary);
+}
+
+.ord-data-wrap {
+  padding: 8px 12px;
+}
+
+.ord-data-block {
+  display: flex;
+  flex-direction: column;
+  background: rgba(76, 84, 97, 0.04);
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.ord-data-row {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  min-height: 48px;
+  padding: 12px;
+}
+
+.ord-data-text {
+  flex: 1 1 0;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.ord-data-value {
+  margin: 0;
+  font-family: "SF Pro Text", "Inter", sans-serif;
+  font-weight: 600;
+  font-size: 17px;
+  line-height: 20px;
+  letter-spacing: -0.43px;
+  color: var(--text-primary);
+}
+
+.ord-data-hint {
+  margin: 0;
+  font-family: "SF Pro Text", "Inter", sans-serif;
+  font-weight: 400;
+  font-size: 13px;
+  line-height: 16px;
+  letter-spacing: -0.08px;
+  color: var(--text-secondary);
+}
+
+.ord-data-action {
+  flex: 0 0 24px;
+  width: 24px;
+  height: 24px;
+  background: transparent;
+  border: 0;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: var(--text-secondary);
+}
+
+.ord-data-action svg,
+.ord-data-action img {
+  width: 24px;
+  height: 24px;
+  display: block;
+}
+
+.ord-data-divider {
+  height: 1px;
+  background: rgba(67, 83, 106, 0.08);
+  margin-left: 12px;
+}
+
+/* ---- Action rows (Вернуть билет / Обменять / Изменить / Задать вопрос) ---- */
+
+.ord-actions-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.ord-action-item {
+  display: flex;
+}
+
+.ord-action-row {
+  flex: 1 1 0;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 48px;
+  padding: 12px 16px;
+  background: transparent;
+  border: 0;
+  cursor: pointer;
+  text-align: left;
+}
+
+.ord-action-label {
+  flex: 1 1 0;
+  min-width: 0;
+  font-family: "SF Pro Text", "Inter", sans-serif;
+  font-weight: 400;
+  font-size: 17px;
+  line-height: 20px;
+  letter-spacing: -0.43px;
+  color: var(--text-primary);
+}
+
+.ord-action-chev {
+  flex: 0 0 16px;
+  width: 16px;
+  height: 16px;
+  display: block;
+}
+
+.ord-action-divider {
+  height: 1px;
+  background: rgba(67, 83, 106, 0.08);
+  margin-left: 16px;
+  list-style: none;
+}
+
+/* ---- Upsell cards (Регистрация, Страховка) ---- */
+
+.ord-upsell {
+  padding: 8px 0 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.ord-upsell-head {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  padding: 8px 12px 0 16px;
+}
+
+.ord-upsell-title {
+  flex: 1 1 0;
+  min-width: 0;
+  margin: 0;
+  padding-top: 8px;
+  font-family: "SF Pro Display", "SF Pro Text", "Inter", sans-serif;
+  font-weight: 700;
+  font-size: 19px;
+  line-height: 23px;
+  letter-spacing: -0.45px;
+  color: var(--text-primary);
+}
+
+.ord-upsell-sticker {
+  flex: 0 0 40px;
+  width: 40px;
+  height: 40px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  filter: drop-shadow(0 4px 4px rgba(0, 0, 0, 0.06));
+}
+
+.ord-upsell-sticker svg,
+.ord-upsell-sticker img {
+  width: 32px;
+  height: 32px;
+  display: block;
+  transform: rotate(10deg);
+}
+
+.ord-upsell-desc {
+  margin: 0;
+  padding: 0 16px;
+  font-family: "SF Pro Text", "Inter", sans-serif;
+  font-weight: 400;
+  font-size: 15px;
+  line-height: 23px;
+  letter-spacing: -0.23px;
+  color: var(--text-primary);
+}
+
+.ord-feat-list {
+  list-style: none;
+  margin: 0;
+  padding: 0 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.ord-feat-list li {
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+  font-family: "SF Pro Text", "Inter", sans-serif;
+  font-weight: 400;
+  font-size: 15px;
+  line-height: 23px;
+  letter-spacing: -0.23px;
+  color: var(--text-primary);
+}
+
+.ord-feat-list svg,
+.ord-feat-list img {
+  flex: 0 0 16px;
+  width: 16px;
+  height: 16px;
+  display: block;
+  margin-top: 3px;
+}
+
+.ord-upsell-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0;
+  padding: 0 16px;
+  font-family: "SF Pro Text", "Inter", sans-serif;
+  font-weight: 600;
+  font-size: 15px;
+  line-height: 18px;
+  letter-spacing: -0.23px;
+  color: var(--brand);
+}
+
+.ord-upsell-link svg {
+  width: 16px;
+  height: 16px;
+  display: block;
+}
+
+.ord-upsell-controls {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 0 16px;
+}
+
+.ord-upsell-price-block {
+  flex: 1 1 0;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.ord-upsell-price {
+  margin: 0;
+  font-family: "SF Pro Display", "SF Pro Text", "Inter", sans-serif;
+  font-weight: 700;
+  font-size: 19px;
+  line-height: 23px;
+  letter-spacing: -0.45px;
+  color: var(--text-primary);
+}
+
+.ord-upsell-price-note {
+  margin: 0;
+  font-family: "SF Pro Text", "Inter", sans-serif;
+  font-weight: 400;
+  font-size: 15px;
+  line-height: 18px;
+  letter-spacing: -0.23px;
+  color: var(--text-secondary);
+}
+
+.ord-add-btn {
+  flex: 0 0 48px;
+  width: 48px;
+  height: 48px;
+  border: 0;
+  border-radius: 16px;
+  background: var(--brand);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.ord-add-btn svg {
+  width: 20px;
+  height: 20px;
+  display: block;
+}
+
+/* ---- Delete order button ---- */
+
+.ord-delete-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  width: 100%;
+  min-height: 48px;
+  padding: 12px 16px;
+  background: transparent;
+  border: 0;
+  border-radius: 16px;
+  font-family: "SF Pro Text", "Inter", sans-serif;
+  font-weight: 600;
+  font-size: 17px;
+  line-height: 20px;
+  letter-spacing: -0.43px;
+  color: #e6404e;
+  cursor: pointer;
+}
+
+.ord-delete-btn svg,
+.ord-delete-btn img.ord-icon-24 {
+  width: 20px;
+  height: 20px;
+  display: block;
+}
+
+/* ---- Clickable bot link cursor ---- */
+
+.bot-link {
+  cursor: pointer;
+}
+
+/* ===== Snackbar (toast above the tabbar) ===== */
+
+.app-snackbar {
+  position: absolute;
+  left: 16px;
+  right: 16px;
+  bottom: 99px; /* 83px tabbar + 16px gap */
+  z-index: 25;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 48px;
+  padding: 12px;
+  background: rgba(12, 19, 29, 0.95);
+  border-radius: 16px;
+  color: #ffffff;
+  font-family: "SF Pro Text", "Inter", sans-serif;
+  font-weight: 400;
+  font-size: 13px;
+  line-height: 1.2;
+  letter-spacing: -0.078px;
+  opacity: 0;
+  transform: translateY(8px);
+  pointer-events: none;
+  visibility: hidden;
+  transition: opacity 200ms ease, transform 200ms ease, visibility 0s linear 200ms;
+  cursor: pointer;
+}
+
+.app-snackbar.is-visible {
+  opacity: 1;
+  transform: translateY(0);
+  pointer-events: auto;
+  visibility: visible;
+  transition: opacity 200ms ease, transform 200ms ease, visibility 0s linear 0s;
+}
+
+.app-snackbar-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 24px;
+  width: 24px;
+  height: 24px;
+}
+
+.app-snackbar-icon svg,
+.app-snackbar-icon img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.app-snackbar-text {
+  flex: 1 1 auto;
+  text-align: left;
+}
+
+/* ===== Email change modal (bottom sheet over orders screen) ===== */
+
+.email-modal {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 30;
+  pointer-events: none;
+  visibility: hidden;
+  transition: visibility 0s linear 300ms;
+}
+
+.email-modal.is-open {
+  pointer-events: auto;
+  visibility: visible;
+  transition: visibility 0s linear 0s;
+}
+
+.email-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(12, 20, 32, 0.24);
+  opacity: 0;
+  transition: opacity 300ms ease;
+}
+
+.email-modal.is-open .email-backdrop {
+  opacity: 1;
+}
+
+.email-sheet {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: #ffffff;
+  border-top-left-radius: 10px;
+  border-top-right-radius: 10px;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  transform: translate3d(0, 100%, 0);
+  transition: transform 300ms cubic-bezier(0.32, 0.72, 0.32, 1);
+}
+
+.email-modal.is-open .email-sheet {
+  transform: translate3d(0, 0, 0);
+}
+
+.email-sheet-head {
+  position: relative;
+  height: 56px;
+  border-top-left-radius: 10px;
+  border-top-right-radius: 10px;
+}
+
+.email-handle {
+  position: absolute;
+  top: 5px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 36px;
+  height: 5px;
+  border-radius: 2.5px;
+  background: rgba(12, 20, 32, 0.24);
+}
+
+.email-title {
+  position: absolute;
+  left: 50%;
+  bottom: 10px;
+  transform: translateX(-50%);
+  margin: 0;
+  max-width: 272px;
+  font-family: "SF Pro Text", "Inter", sans-serif;
+  font-weight: 600;
+  font-size: 17px;
+  line-height: 1.2;
+  letter-spacing: -0.408px;
+  color: var(--text-primary);
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.email-close {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  width: 28px;
+  height: 28px;
+  border: 0;
+  padding: 0;
+  border-radius: 50%;
+  background: rgba(67, 83, 106, 0.08);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: #5a6472;
+}
+
+.email-close svg {
+  width: 12px;
+  height: 12px;
+  display: block;
+}
+
+.email-content {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 24px;
+  padding: 8px 24px 24px;
+}
+
+.email-content[hidden] {
+  display: none;
+}
+
+.email-content-sent {
+  align-items: center;
+  gap: 8px;
+  text-align: center;
+}
+
+.email-desc {
+  margin: 0;
+  font-family: "SF Pro Text", "Inter", sans-serif;
+  font-weight: 400;
+  font-size: 15px;
+  line-height: 22px;
+  color: var(--text-primary);
+}
+
+.email-sent-text {
+  margin: 0;
+  font-family: "SF Pro Text", "Inter", sans-serif;
+  font-weight: 400;
+  font-size: 15px;
+  line-height: 22px;
+  color: var(--text-primary);
+}
+
+.email-sent-text strong {
+  font-weight: 600;
+}
+
+.email-input-wrap {
+  position: relative;
+  display: flex;
+  align-items: stretch;
+  min-height: 48px;
+  padding: 0 16px;
+  background: var(--white);
+  border: 1px solid rgba(13, 25, 43, 0.16);
+  border-radius: 12px;
+}
+
+.email-input-label {
+  position: absolute;
+  left: 16px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-family: "SF Pro Text", "Inter", sans-serif;
+  font-weight: 400;
+  font-size: 17px;
+  line-height: 22px;
+  color: var(--text-tertiary);
+  pointer-events: none;
+  transition: top 140ms ease, font-size 140ms ease, line-height 140ms ease, transform 140ms ease;
+}
+
+.email-input-wrap.is-filled .email-input-label {
+  top: 6px;
+  transform: none;
+  font-size: 11px;
+  line-height: 14px;
+}
+
+.email-input {
+  flex: 1 1 auto;
+  min-width: 0;
+  padding: 12px 0;
+  border: 0;
+  outline: none;
+  background: transparent;
+  font-family: "SF Pro Text", "Inter", sans-serif;
+  font-weight: 400;
+  font-size: 17px;
+  line-height: 22px;
+  color: var(--text-primary);
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+.email-input:focus {
+  outline: none;
+  box-shadow: none;
+}
+
+.email-input-wrap.is-filled .email-input {
+  padding: 22px 0 6px;
+}
+
+.email-confirm-btn {
+  min-height: 48px;
+  padding: 12px 16px;
+  border: 0;
+  border-radius: 16px;
+  background: var(--brand);
+  color: var(--white);
+  font-family: "SF Pro Text", "Inter", sans-serif;
+  font-weight: 600;
+  font-size: 17px;
+  line-height: 22px;
+  text-align: center;
+  cursor: pointer;
+  opacity: 0.5;
+  transition: opacity 160ms ease;
+}
+
+.email-confirm-btn:not(:disabled) {
+  opacity: 1;
+}
+
+.email-confirm-btn:disabled {
+  cursor: default;
+}
+
+.email-home-indicator {
+  align-self: center;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  width: 134px;
+  height: 34px;
+  padding-bottom: 8px;
+}
+
+.email-home-indicator span {
+  display: block;
+  width: 100%;
+  height: 5px;
+  border-radius: 100px;
+  background: #000;
+}

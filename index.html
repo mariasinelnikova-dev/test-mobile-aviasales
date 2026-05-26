@@ -1,1627 +1,729 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="ru">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=390, initial-scale=1, maximum-scale=1, user-scalable=no">
-  <title>Умная поддержка — прототип</title>
-  <style>
-    /* ============================
-       RESET & BASE
-       ============================ */
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
-    body {
-      background: #1c1c1e;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      min-height: 100vh;
-      font-family: "SF Pro Text", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-    }
-
-    /* ============================
-       DEVICE FRAME
-       ============================ */
-    .device {
-      width: 390px;
-      height: 844px;
-      position: relative;
-      overflow: hidden;
-      background: #f2f4f5;
-      border-radius: 55px;
-      box-shadow: 0 30px 80px rgba(0,0,0,0.6), inset 0 0 0 1px rgba(255,255,255,0.12);
-    }
-
-    /* ============================
-       SCREENS
-       ============================ */
-    .screen {
-      position: absolute;
-      inset: 0;
-      display: flex;
-      flex-direction: column;
-      background: #f2f4f5;
-      opacity: 0;
-      pointer-events: none;
-      transition: opacity 0.18s ease;
-    }
-    .screen.active { opacity: 1; pointer-events: auto; }
-
-    /* ============================
-       NAVBAR
-       ============================ */
-    .navbar {
-      position: absolute;
-      top: 0; left: 0; right: 0;
-      z-index: 20;
-      flex-shrink: 0;
-    }
-
-    .statusbar {
-      height: 47px;
-      display: flex;
-      align-items: flex-end;
-      justify-content: space-between;
-      padding: 0 18px 6px;
-    }
-    .statusbar-time {
-      font-size: 16px;
-      font-weight: 600;
-      letter-spacing: -0.32px;
-      color: #0c131d;
-      line-height: 21px;
-    }
-    /* Figma statusbar icons — точные размеры из дизайна */
-    .statusbar-icons { height: 16px; width: 67px; }
-    .statusbar-icons img { height: 16px; width: 67px; object-fit: contain; }
-
-    .toolbar {
-      height: 54px;
-      display: flex;
-      align-items: center;
-      position: relative;
-    }
-    .toolbar-left {
-      position: absolute;
-      left: 8px; top: 0; bottom: 0;
-      display: flex; align-items: center;
-    }
-    .back-btn {
-      width: 44px; height: 44px;
-      border: none; background: none; cursor: pointer;
-      display: flex; align-items: center; justify-content: center;
-      position: relative; padding: 10px;
-    }
-    .back-btn-glass {
-      position: absolute; inset: 0;
-      border-radius: 999px;
-      background: rgba(255,255,255,0.88);
-      box-shadow: 0 2px 14px rgba(0,0,0,0.12);
-      backdrop-filter: blur(20px);
-      -webkit-backdrop-filter: blur(20px);
-    }
-    /* Figma chevron asset points right — rotate to make back arrow */
-    .back-btn img { width: 24px; height: 24px; position: relative; z-index: 1; transform: rotate(180deg); }
-
-    .toolbar-title {
-      position: absolute; left: 50%; transform: translateX(-50%);
-      text-align: center; white-space: nowrap;
-    }
-    .toolbar-title-main {
-      font-size: 15px; font-weight: 600;
-      letter-spacing: -0.408px; color: #0c131d; line-height: 18px;
-    }
-    .toolbar-title-sub {
-      font-size: 11px; color: rgba(0,0,0,0.55);
-      line-height: 13px; letter-spacing: 0;
-    }
-
-    /* Navbar frosted glass bg — fades out at the very bottom edge */
-    .navbar::before {
-      content: '';
-      position: absolute; inset: 0; z-index: -1;
-      background: rgba(242,244,245,0.82);
-      backdrop-filter: blur(20px);
-      -webkit-backdrop-filter: blur(20px);
-      -webkit-mask-image: linear-gradient(to bottom, black 75%, transparent 100%);
-      mask-image: linear-gradient(to bottom, black 75%, transparent 100%);
-    }
-
-    /* ============================
-       CHAT AREA
-       ============================ */
-    .chat {
-      flex: 1;
-      overflow-y: auto;
-      padding: 101px 16px 8px;
-      display: flex;
-      flex-direction: column;
-      gap: 4px;
-      scrollbar-width: none;
-    }
-    .chat::-webkit-scrollbar { display: none; }
-
-    .gap-8 { height: 8px; flex-shrink: 0; }
-    .gap-16 { height: 16px; flex-shrink: 0; }
-
-    /* ============================
-       BUBBLES
-       ============================ */
-    /* Group wraps one or more bubbles + tail */
-    .msg-group { display: flex; flex-direction: column; }
-    .msg-group + .msg-group { margin-top: 8px; }
-
-    .msg-group-bot { align-items: flex-start; position: relative; padding-bottom: 4px; }
-    .msg-group-user { align-items: flex-end; position: relative; padding-bottom: 4px; }
-
-    /* Figma: "Появление ответа" -> Opacity 0->100, 300ms, ease-out-quad */
-    .msg-group.animate-in {
-      animation: bubble-fade-in 300ms cubic-bezier(0.25, 0.46, 0.45, 0.94) both;
-    }
-
-    @keyframes bubble-fade-in {
-      from { opacity: 0; }
-      to { opacity: 1; }
-    }
-
-    /* The tail is absolutely positioned relative to msg-group */
-    .msg-group-bot > .tail {
-      position: absolute; bottom: 0; left: 1px;
-      width: 10px; height: 10px;
-      transform: rotate(180deg) scaleY(-1); /* = scaleX(-1) */
-    }
-    .msg-group-user > .tail {
-      position: absolute; bottom: 1px; right: 1px;
-      width: 10px; height: 10px;
-    }
-
-    .bubble {
-      border-radius: 20px;
-      padding: 12px 16px;
-      font-size: 17px;
-      line-height: 26px;
-      letter-spacing: -0.43px;
-      font-weight: 400;
-      max-width: 334px;
-      position: relative;
-    }
-    .bubble + .bubble { margin-top: 4px; }
-
-    .bubble-bot {
-      background: #fff;
-      color: #0c131d;
-      align-self: flex-start;
-      max-width: 358px;
-    }
-    .bubble-user {
-      background: #0c73fe;
-      color: #fff;
-      align-self: flex-end;
-    }
-
-    /* Paragraph spacing inside bot bubble */
-    .bubble-bot p + p { margin-top: 12px; }
-
-    /* ============================
-       LIKE / DISLIKE ACTIONS
-       ============================ */
-    .like-row {
-      display: flex; gap: 0;
-      align-self: flex-start; margin-top: 4px;
-    }
-    .like-btn {
-      width: 36px; height: 36px;
-      border: none; background: none; border-radius: 12px;
-      cursor: pointer; display: flex; align-items: center; justify-content: center;
-      transition: background 0.15s;
-    }
-    .like-btn:hover { background: rgba(67,83,106,0.08); }
-    .like-btn img { width: 16px; height: 16px; }
-
-    /* ============================
-       WIDGET (white card, bot side)
-       ============================ */
-    .widget {
-      background: #fff;
-      border-radius: 20px;
-      padding: 12px 16px 16px;
-      align-self: flex-start;
-      width: 100%;
-      max-width: 358px;
-      position: relative;
-    }
-    .widget-q {
-      font-size: 17px; line-height: 26px;
-      letter-spacing: -0.43px; color: #0c131d;
-      margin-bottom: 16px;
-    }
-
-    /* ============================
-       ORDER CARDS
-       ============================ */
-    .orders { display: flex; flex-direction: column; gap: 8px; margin-bottom: 12px; }
-
-    .order-card {
-      background: rgba(76,84,97,0.04);
-      border-radius: 16px;
-      padding: 16px;
-      cursor: pointer;
-      transition: background 0.15s;
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-    }
-    .order-card:hover { background: rgba(76,84,97,0.08); }
-    .order-card:active { background: rgba(76,84,97,0.12); }
-
-    .order-row { display: flex; align-items: center; gap: 16px; }
-    .order-info { flex: 1; min-width: 0; }
-    .order-route {
-      font-family: "Inter", -apple-system, BlinkMacSystemFont, sans-serif;
-      font-size: 15px; font-weight: 600; line-height: 19px;
-      color: #0c131d;
-      overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
-    }
-    .order-dates {
-      font-size: 15px; line-height: 18px; letter-spacing: -0.23px;
-      color: #0c131d; margin-top: 2px;
-    }
-
-    /* Stacked airline logos */
-    .logos {
-      display: flex; flex-direction: column;
-      align-items: flex-end; padding-bottom: 12px;
-    }
-    .logo {
-      width: 24px; height: 24px; border-radius: 18px; overflow: hidden;
-      margin-bottom: -12px; background: #fff;
-      box-shadow: 0 0 0 1.5px rgba(255,255,255,0.8);
-    }
-    .logo img { width: 100%; height: 100%; object-fit: cover; border-radius: 18px; }
-    .logo-single { padding-bottom: 0; }
-    .logo-single .logo { margin-bottom: 0; }
-
-    /* Badge */
-    .badge {
-      background: rgba(146,192,255,0.28);
-      border-radius: 100px; padding: 2px 8px;
-      display: inline-flex; align-items: center; min-height: 20px;
-      align-self: flex-start;
-      width: fit-content;
-    }
-    .badge-text {
-      font-size: 13px; font-weight: 600; line-height: 16px;
-      letter-spacing: -0.08px; color: #0a64dd;
-      width: auto;
-      white-space: nowrap;
-    }
-
-    /* ============================
-       SECONDARY BUTTON (gray, inside widget or standalone)
-       ============================ */
-    .sec-btn {
-      width: 100%; min-height: 48px;
-      border: none; border-radius: 16px;
-      background: rgba(67,83,106,0.08);
-      color: #0c131d;
-      font-size: 17px; font-weight: 600; line-height: 20px;
-      letter-spacing: -0.43px;
-      font-family: "SF Pro Text", -apple-system, BlinkMacSystemFont, sans-serif;
-      cursor: pointer;
-      display: flex; align-items: center; justify-content: center; gap: 6px;
-      padding: 12px 16px; transition: background 0.15s;
-    }
-    .sec-btn:hover { background: rgba(67,83,106,0.13); }
-    .sec-btn img { width: 24px; height: 24px; }
-
-    /* ============================
-       FILE BUBBLE
-       ============================ */
-    .file-bubble {
-      background: #0c73fe; border-radius: 20px; padding: 12px 16px;
-      align-self: flex-end; max-width: 334px; cursor: pointer;
-    }
-    .file-pill {
-      display: flex; align-items: center; gap: 10px;
-    }
-    .file-pill + .file-pill { margin-top: 8px; }
-    .file-icon {
-      width: 36px; height: 36px; flex-shrink: 0;
-      background: rgba(255,255,255,0.2); border-radius: 9px;
-      display: flex; align-items: center; justify-content: center;
-      font-size: 20px;
-    }
-    .file-name {
-      font-size: 17px; line-height: 20px; letter-spacing: -0.23px;
-      color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-    }
-    .file-size {
-      font-size: 13px; line-height: 16px; letter-spacing: -0.08px;
-      color: rgba(255,255,255,0.7); margin-top: 2px;
-    }
-
-    /* ============================
-       WARNING BOX
-       ============================ */
-    .warning-box {
-      display: flex; gap: 10px;
-      background: transparent;
-      border-radius: 14px; padding: 10px 12px;
-      margin-top: 8px;
-    }
-    .warning-emoji { font-size: 18px; line-height: 26px; flex-shrink: 0; }
-    .warning-text {
-      font-size: 15px; line-height: 22px; letter-spacing: -0.23px; color: #0c131d;
-    }
-
-    /* ============================
-       BOTTOM AREA
-       ============================ */
-    .bottom {
-      flex-shrink: 0;
-      display: flex; flex-direction: column; align-items: center;
-      width: 100%;
-      padding: 0 8px 32px;
-    }
-
-    /* Suggest chips row (above input) */
-    .suggests {
-      width: 100%; padding: 0 16px 8px;
-      display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 8px;
-    }
-    /* Figma: "Саджесты" -> move Y 300ms + opacity 150ms (second half) */
-    .suggests.animate-in {
-      animation: suggests-appear 300ms cubic-bezier(0.25, 0.46, 0.45, 0.94) both;
-      transform-origin: top;
-    }
-    @keyframes suggests-appear {
-      0%   { transform: translateY(16px); opacity: 0; }
-      50%  { opacity: 0; }
-      100% { transform: translateY(0); opacity: 1; }
-    }
-    .chip {
-      background: #fff; border: none; border-radius: 12px;
-      padding: 9px 14px; min-height: 36px;
-      font-size: 15px; font-weight: 600; line-height: 18px;
-      letter-spacing: -0.23px; color: #0c73fe; cursor: pointer;
-      box-shadow: 0 4px 8px rgba(0,0,0,0.06);
-      font-family: "SF Pro Text", -apple-system, BlinkMacSystemFont, sans-serif;
-      transition: background 0.15s; white-space: nowrap;
-    }
-    .chip:hover { background: #eef4ff; }
-    .chip:active { background: #ddeeff; }
-
-    /* Input row */
-    .input-wrap {
-      width: 374px;
-      max-width: 100%;
-      height: 52px;
-      background: #fff; border: 0.5px solid rgba(67,83,106,0.08);
-      border-radius: 20px; box-shadow: 0 4px 8px rgba(0,0,0,0.06);
-      display: flex; align-items: center; padding: 0 10px 0 16px;
-      cursor: pointer; position: relative; flex-shrink: 0;
-    }
-    .input-placeholder {
-      flex: 1; font-size: 17px; line-height: 20px;
-      letter-spacing: -0.43px; color: #5a6472;
-      pointer-events: none; user-select: none;
-    }
-    .input-value {
-      flex: 1; font-size: 17px; line-height: 20px;
-      letter-spacing: -0.43px; color: #0c131d;
-      pointer-events: none; user-select: none;
-    }
-    .send-btn {
-      width: 32px; height: 32px; border: none; border-radius: 50%;
-      background: rgba(67,83,106,0.12); cursor: pointer; flex-shrink: 0;
-      display: flex; align-items: center; justify-content: center;
-      position: relative;
-    }
-    .send-btn-bg {
-      position: absolute; inset: 0; border-radius: 50%;
-    }
-    .send-btn .send-btn-bg {
-      width: 32px;
-      height: 32px;
-      inset: 0;
-      position: absolute;
-      z-index: 0;
-    }
-    .send-btn > img:not(.send-btn-bg) {
-      width: 24px;
-      height: 24px;
-      position: relative;
-      z-index: 1;
-    }
-
-    /* Tabbar */
-    .tabbar-area {
-      width: 390px; padding: 12px 21px 21px;
-      position: relative;
-    }
-    /* Prototype mode: hide tab bar globally */
-    .tabbar-area { display: none; }
-    .tabbar-fade {
-      position: absolute; top: 0; left: 0; right: 0; height: 40px;
-      background: linear-gradient(to bottom, transparent, #f2f4f5);
-      pointer-events: none;
-    }
-    /* Tabbar Liquid Glass — точно по Figma */
-    .tabbar-pills {
-      width: 100%; height: 48px; border-radius: 1000px;
-      /* Liquid glass: полупрозрачный белый + сильный blur + shadow */
-      background: rgba(255,255,255,0.88);
-      backdrop-filter: blur(24px) saturate(180%);
-      -webkit-backdrop-filter: blur(24px) saturate(180%);
-      box-shadow: 0 2px 14px rgba(0,0,0,0.12), inset 0 0 0 0.5px rgba(255,255,255,0.6);
-      display: flex; align-items: center;
-      padding: 4px;
-      position: relative; z-index: 1;
-    }
-    .tab {
-      flex: 1; display: flex; flex-direction: column;
-      align-items: center; justify-content: center; gap: 1px;
-      padding: 6px 8px 7px; border-radius: 999px;
-      cursor: pointer; position: relative; min-width: 0;
-    }
-    /* Active tab selection overlay — rgba(17,33,56,0.12) opacity 60% = rgba(17,33,56,0.072) */
-    .tab.active::before {
-      content: ''; position: absolute; inset: 0;
-      border-radius: 100px;
-      background: rgba(17,33,56,0.12); opacity: 0.6;
-    }
-    .tab-icon {
-      width: 28px; height: 28px; position: relative; z-index: 1;
-      display: flex; align-items: center; justify-content: center;
-    }
-    .tab-icon img { width: 100%; height: 100%; object-fit: contain; }
-    .tab-label {
-      font-size: 9px; font-weight: 510; line-height: 12px;
-      color: #848f9d; position: relative; z-index: 1;
-      font-family: -apple-system, "SF Pro", BlinkMacSystemFont, sans-serif;
-      letter-spacing: 0;
-    }
-    .tab.active .tab-label { color: #0c131d; }
-
-    /* ============================
-       FLASH TRANSITION
-       ============================ */
-    .flash {
-      position: absolute; inset: 0;
-      background: #fff; opacity: 0;
-      pointer-events: none; z-index: 100;
-      transition: opacity 0.1s ease;
-    }
-    .flash.in { opacity: 1; }
-
-    /* ============================
-       LEGEND
-       ============================ */
-    .legend {
-      position: fixed; bottom: 24px; right: 24px;
-      background: rgba(28,28,30,0.88);
-      color: #ffffffcc; font-size: 11px; line-height: 1.6;
-      padding: 10px 14px; border-radius: 12px;
-      font-family: -apple-system, BlinkMacSystemFont, sans-serif;
-      backdrop-filter: blur(20px); z-index: 200;
-    }
-    .legend strong { color: #fff; display: block; margin-bottom: 4px; font-size: 12px; }
-    .legend .k {
-      background: rgba(255,255,255,0.15); border-radius: 4px;
-      padding: 1px 5px; font-family: monospace; font-size: 11px; color: #fff;
-    }
-
-    /* ============================
-       SCREEN PROGRESS INDICATOR
-       ============================ */
-    .screen-label {
-      position: fixed; top: 20px; right: 20px; z-index: 300;
-      background: rgba(28,28,30,0.75); color: #fff;
-      font-size: 11px; padding: 4px 10px; border-radius: 8px;
-      font-family: monospace; backdrop-filter: blur(10px);
-    }
-
-    /* ============================
-       REAL INPUT / TEXTAREA
-       ============================ */
-    .real-input {
-      flex: 1;
-      border: none;
-      background: none;
-      outline: none;
-      font-size: 17px;
-      line-height: 20px;
-      letter-spacing: -0.43px;
-      color: #0c131d;
-      font-family: "SF Pro Text", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-      resize: none;
-      padding: 0;
-      align-self: center;
-    }
-    textarea.real-input {
-      min-height: 20px;
-      max-height: 120px;
-      overflow-y: auto;
-      scrollbar-width: none;
-    }
-    textarea.real-input::-webkit-scrollbar { display: none; }
-    .real-input::placeholder { color: #5a6472; }
-    .input-wrap:focus-within {
-      border-color: rgba(12,115,254,0.4) !important;
-      box-shadow: 0 0 0 2px rgba(12,115,254,0.12), 0 4px 8px rgba(0,0,0,0.06) !important;
-    }
-  </style>
-</head>
-<body>
-
-<!-- ==================== DEVICE ==================== -->
-<div class="device" id="device">
-  <div class="flash" id="flash"></div>
-
-  <!-- ==================== S1: ORDERS WIDGET ==================== -->
-  <div class="screen active" id="s1">
-    <!-- NavBar -->
-    <nav class="navbar">
-      <div class="statusbar">
-        <span class="statusbar-time">9:41</span>
-        <div class="statusbar-icons">
-          <img src="https://www.figma.com/api/mcp/asset/4dcd840e-58ad-41b7-a22e-c1ffc55c3cff" alt="">
-        </div>
-      </div>
-      <div class="toolbar">
-        <div class="toolbar-left">
-          <button class="back-btn" onclick="goBack()">
-            <div class="back-btn-glass"></div>
-            <img src="https://www.figma.com/api/mcp/asset/5b3db11f-e229-4d4c-9ce1-dee6c1d02c5f" alt="Назад">
-          </button>
-        </div>
-        <div class="toolbar-title">
-          <div class="toolbar-title-main">Умная поддержка</div>
-          <div class="toolbar-title-sub">Первая версия нейросети</div>
-        </div>
-      </div>
-    </nav>
-
-    <!-- Chat -->
-    <div class="chat" id="chat-s1">
-      <!-- Bot greeting -->
-      <div class="msg-group msg-group-bot">
-        <div class="bubble bubble-bot">
-          Привет! Я — умный ассистент Авиасейлс. Знаю всё про билеты, перелёты и багаж, помогу с вопросами по вашим заказам
-        </div>
-      </div>
-      <div class="msg-group msg-group-bot">
-        <div class="bubble bubble-bot">
-          Опишите свою ситуацию как можно подробнее — так я быстрее со всем разберусь
-        </div>
-      </div>
-      <div class="msg-group msg-group-bot">
-        <div class="bubble bubble-bot" style="max-width:max-content">С чем нужна помощь?</div>
-        <img class="tail" src="https://www.figma.com/api/mcp/asset/9d2a3b73-a3d0-464a-8587-dc7f91b2aeac" alt="">
-      </div>
-
-      <!-- User -->
-      <div class="msg-group msg-group-user">
-        <div class="bubble bubble-user">А как лететь с питомцами?</div>
-        <img class="tail" src="https://www.figma.com/api/mcp/asset/1590b278-2e77-469e-adad-f43bc7b9e782" alt="">
-      </div>
-
-      <!-- Bot long answer -->
-      <div class="msg-group msg-group-bot">
-        <div class="bubble bubble-bot">
-          <p>Если билет не пришёл, проверьте папку «Спам» и «Промоакции» — иногда письма могут попасть туда.</p>
-          <p>Обычно билет приходит в течение 3 часов. Если прошло более 24 часов с момента покупки, и вы не получили билет, пожалуйста, проверьте раздел «Мои заказы» на нашем сайте.</p>
-        </div>
-        <img class="tail" src="https://www.figma.com/api/mcp/asset/9d2a3b73-a3d0-464a-8587-dc7f91b2aeac" alt="">
-      </div>
-      <div class="like-row">
-        <button class="like-btn"><img src="https://www.figma.com/api/mcp/asset/535e8be6-0d14-41bc-b970-706253398558" alt="👍"></button>
-        <button class="like-btn"><img src="https://www.figma.com/api/mcp/asset/080a237a-c09b-440a-8a08-dec8c5d02672" alt="👎"></button>
-      </div>
-
-      <!-- User -->
-      <div class="msg-group msg-group-user">
-        <div class="bubble bubble-user" style="max-width:max-content">Ответ не помог</div>
-        <img class="tail" src="https://www.figma.com/api/mcp/asset/1590b278-2e77-469e-adad-f43bc7b9e782" alt="">
-      </div>
-
-      <div class="gap-8"></div>
-
-      <!-- Bot intro to support ticket -->
-      <div class="msg-group msg-group-bot">
-        <div class="bubble bubble-bot">
-          Давайте создадим обращение в поддержку. Чтобы помогли быстрее, мне нужно уточнить детали.
-        </div>
-      </div>
-
-      <!-- Orders widget -->
-      <div class="widget" style="position:relative">
-        <img class="tail" style="position:absolute;bottom:0;left:1px;width:10px;height:10px;transform:rotate(180deg) scaleY(-1);" src="https://www.figma.com/api/mcp/asset/9d2a3b73-a3d0-464a-8587-dc7f91b2aeac" alt="">
-        <p class="widget-q">По какому заказу у вас вопрос?</p>
-
-        <div class="orders">
-          <!-- Card 1 -->
-          <div class="order-card" onclick="selectOrder('Стамбул — Екатеринбург','24 дек, чт — 25 дек, пн')">
-            <div class="order-row">
-              <div class="order-info">
-                <div class="order-route">Стамбул — Екатеринбург</div>
-                <div class="order-dates">24 дек, чт — 25 дек, пн</div>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Mainpage iOS Prototype</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <main class="app-root">
+      <section class="phone-frame" aria-label="Mainpage iOS viewport 390x844">
+        <div class="content-scroll screen-main">
+          <header class="hero">
+            <h1 class="hero-title">Тут покупают<br />дешёвые авиабилеты</h1>
+            <div class="search-card">
+              <span class="search-icon" aria-hidden="true">
+                <img src="./assets/icons/search.svg" alt="" />
+              </span>
+              <div class="search-row search-row-top">
+                <span class="search-text strong">Москва</span>
               </div>
-              <div class="logos">
-                <div class="logo"><img src="https://www.figma.com/api/mcp/asset/38385012-8943-44a5-9a9d-e0eec67373b8" alt=""></div>
-                <div class="logo"><img src="https://www.figma.com/api/mcp/asset/18fdb84d-6272-43d1-8670-a641532611c0" alt=""></div>
+              <div class="search-divider"></div>
+              <div class="search-row search-row-bottom">
+                <span class="search-text muted">Куда — Сочи</span>
+                <span class="search-cursor" aria-hidden="true"></span>
               </div>
             </div>
-          </div>
+          </header>
 
-          <!-- Card 2 with badge -->
-          <div class="order-card" onclick="selectOrder('Москва — Уфа','24 дек, чт — 25 дек, пн')">
-            <div class="badge"><span class="badge-text">Билет от Авиасейлс</span></div>
-            <div class="order-row">
-              <div class="order-info">
-                <div class="order-route">Москва — Уфа</div>
-                <div class="order-dates">24 дек, чт — 25 дек, пн</div>
-              </div>
-              <div class="logos logo-single">
-                <div class="logo"><img src="https://www.figma.com/api/mcp/asset/4dd917bb-f254-461b-82f1-f8052439a40d" alt=""></div>
-              </div>
+          <section class="services">
+            <article class="service-item">
+              <img class="sticker-icon" src="./assets/icons/hot-tickets.svg" alt="" />
+              <p>Горячие<br />билеты</p>
+            </article>
+            <article class="service-item">
+              <img class="sticker-icon" src="./assets/icons/anywhere.svg" alt="" />
+              <p>Куда<br />угодно</p>
+            </article>
+            <article class="service-item">
+              <img class="sticker-icon" src="./assets/icons/smart-search.svg" alt="" />
+              <p>Умный<br />поиск</p>
+            </article>
+            <article class="service-item">
+              <img class="sticker-icon" src="./assets/icons/complex-route.svg" alt="" />
+              <p>Сложный<br />маршрут</p>
+            </article>
+          </section>
+
+          <section class="hot-tickets">
+            <img class="hot-fire" src="./assets/icons/fire.png" alt="" />
+
+            <div class="hot-title">
+              <h2>Горячие билеты</h2>
+              <p class="hot-subtitle">Скоро разберут!</p>
             </div>
-          </div>
 
-          <!-- Card 3 -->
-          <div class="order-card" onclick="selectOrder('Стамбул — Екатеринбург','28 дек, сб — 30 дек, пн')">
-            <div class="order-row">
-              <div class="order-info">
-                <div class="order-route">Стамбул — Екатеринбург</div>
-                <div class="order-dates">28 дек, сб — 30 дек, пн</div>
-              </div>
-              <div class="logos">
-                <div class="logo"><img src="https://www.figma.com/api/mcp/asset/38385012-8943-44a5-9a9d-e0eec67373b8" alt=""></div>
-                <div class="logo"><img src="https://www.figma.com/api/mcp/asset/18fdb84d-6272-43d1-8670-a641532611c0" alt=""></div>
-              </div>
+            <div class="tickets-row">
+              <article class="ticket-card">
+                <span class="ticket-badge">Нашли только что</span>
+                <div class="ticket-topbar">
+                  <div class="ticket-prices">
+                    <span class="price-current">22&nbsp;465&nbsp;₽</span>
+                    <span class="price-old">22&nbsp;465&nbsp;₽</span>
+                  </div>
+                  <button class="fav-btn" type="button" aria-label="В избранное">
+                    <img src="https://www.figma.com/api/mcp/asset/4b03622b-1985-443e-9aa2-75531d57337c" alt="" />
+                  </button>
+                </div>
+                <p class="ticket-route">Санкт-Петербург — Москва</p>
+                <div class="ticket-itinerary">
+                  <img class="airline-logo" src="https://www.figma.com/api/mcp/asset/78859f1c-dbcf-45a5-b955-a7e82dcb0d87" alt="" />
+                  <div class="ticket-dates">
+                    <div class="dates-row">
+                      <span class="dates-day">15 авг, вт</span>
+                    </div>
+                    <div class="dates-row dates-row-times">
+                      <span class="dates-time">22:30</span>
+                      <span class="dash dash-small"></span>
+                      <span class="dates-time">00:05</span>
+                    </div>
+                  </div>
+                  <p class="ticket-stops">
+                    8&nbsp;ч&nbsp;в&nbsp;пути <span class="slash">/</span> 1&nbsp;пересадка
+                  </p>
+                </div>
+              </article>
+
+              <article class="ticket-card ticket-card-peek" aria-hidden="true">
+                <div class="ticket-topbar">
+                  <div class="ticket-prices">
+                    <span class="price-current">22&nbsp;465&nbsp;₽</span>
+                    <span class="price-old">22&nbsp;465&nbsp;₽</span>
+                  </div>
+                  <button class="fav-btn" type="button" aria-label="В избранное" tabindex="-1">
+                    <img src="https://www.figma.com/api/mcp/asset/4b03622b-1985-443e-9aa2-75531d57337c" alt="" />
+                  </button>
+                </div>
+                <p class="ticket-route">Санкт-Петербург — Москва</p>
+                <div class="ticket-itinerary">
+                  <img class="airline-logo" src="https://www.figma.com/api/mcp/asset/78859f1c-dbcf-45a5-b955-a7e82dcb0d87" alt="" />
+                  <div class="ticket-dates">
+                    <div class="dates-row">
+                      <span class="dates-day">15 авг, вт</span>
+                    </div>
+                    <div class="dates-row dates-row-times">
+                      <span class="dates-time">22:30</span>
+                      <span class="dash dash-small"></span>
+                      <span class="dates-time">00:05</span>
+                    </div>
+                  </div>
+                  <p class="ticket-stops">
+                    8&nbsp;ч&nbsp;в&nbsp;пути <span class="slash">/</span> 1&nbsp;пересадка
+                  </p>
+                </div>
+              </article>
+            </div>
+
+            <button class="hot-btn" type="button">Больше жарких билетов</button>
+          </section>
+
+          <section class="russia-section">
+            <h3>Это можно в России</h3>
+            <div class="places-row">
+              <article class="place-card">
+                <img class="place-photo" src="https://www.figma.com/api/mcp/asset/cb662dfc-a6b3-41f2-883a-b81588a44be5" alt="" />
+                <p class="place-title">Посмотреть на столицу красавицу</p>
+                <p class="place-city">Москва</p>
+                <p class="place-price">
+                  <span class="place-plane" aria-hidden="true">
+                    <svg viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <path d="M11.25 5.5l-4.2-1L4.5 1.5H3.6l1.3 3.4L2 5.3l-.6-.9H.75L1.4 6 0.75 7.6h.65l.6-.9 2.9.4-1.3 3.4h.9L6.9 7.5l4.35-1c.275-.07.5-.31.5-.5s-.225-.43-.5-.5z" fill="currentColor"/>
+                    </svg>
+                  </span>
+                  от 21&nbsp;777&nbsp;₽
+                </p>
+              </article>
+              <article class="place-card">
+                <img class="place-photo" src="https://www.figma.com/api/mcp/asset/e0f129ed-e2c9-4ed2-8109-0997a4337608" alt="" />
+                <p class="place-title">Подышать паром в Долине гейзеров</p>
+                <p class="place-city">Петропавловск-камчатский</p>
+                <p class="place-price">
+                  <span class="place-plane" aria-hidden="true">
+                    <svg viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <path d="M11.25 5.5l-4.2-1L4.5 1.5H3.6l1.3 3.4L2 5.3l-.6-.9H.75L1.4 6 0.75 7.6h.65l.6-.9 2.9.4-1.3 3.4h.9L6.9 7.5l4.35-1c.275-.07.5-.31.5-.5s-.225-.43-.5-.5z" fill="currentColor"/>
+                    </svg>
+                  </span>
+                  от 56&nbsp;622&nbsp;₽
+                </p>
+              </article>
+              <article class="place-card">
+                <img class="place-photo" src="https://www.figma.com/api/mcp/asset/cb662dfc-a6b3-41f2-883a-b81588a44be5" alt="" />
+                <p class="place-title">Освежиться у Агурских водопадов</p>
+                <p class="place-city">Сочи</p>
+                <p class="place-price">
+                  <span class="place-plane" aria-hidden="true">
+                    <svg viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <path d="M11.25 5.5l-4.2-1L4.5 1.5H3.6l1.3 3.4L2 5.3l-.6-.9H.75L1.4 6 0.75 7.6h.65l.6-.9 2.9.4-1.3 3.4h.9L6.9 7.5l4.35-1c.275-.07.5-.31.5-.5s-.225-.43-.5-.5z" fill="currentColor"/>
+                    </svg>
+                  </span>
+                  от 18&nbsp;340&nbsp;₽
+                </p>
+              </article>
+            </div>
+            <button class="places-btn" type="button">Показать все места</button>
+          </section>
+        </div>
+
+        <div class="content-scroll screen-profile" hidden>
+          <header class="profile-header">
+            <h1 class="profile-name">Мария</h1>
+            <div class="profile-email-row">
+              <span class="profile-email">maria.kalimullin@aviasales.ru</span>
+              <img class="profile-pencil" src="./assets/icons/profile/pencil.svg" alt="" />
+            </div>
+          </header>
+
+          <div class="profile-content">
+            <div class="profile-cards">
+              <article class="booking-card" id="profileBookingCard" data-action="open-order" role="button" tabindex="0">
+                <div class="booking-card-header">
+                  <span class="booking-badge">Билет от Авиасейлс</span>
+                  <img class="chevron-right" src="./assets/icons/profile/chevron.svg" alt="" />
+                </div>
+                <div class="booking-card-text">
+                  <h2 class="booking-title">Москва — Владивосток</h2>
+                  <p class="booking-meta">
+                    <span>4 ноя 2023</span>
+                    <span class="dot">•</span>
+                    <span>2 пассажира</span>
+                  </p>
+                </div>
+              </article>
+
+              <article class="settings-card">
+                <div class="settings-head">
+                  <p class="settings-title">Настройки</p>
+                </div>
+                <button class="settings-row" type="button">
+                  <span class="settings-label">Личные данные</span>
+                  <img class="chevron-right small" src="./assets/icons/profile/chevron.svg" alt="" />
+                </button>
+                <div class="settings-divider"></div>
+                <button class="settings-row" type="button">
+                  <span class="settings-label">Региональные</span>
+                  <img class="chevron-right small" src="./assets/icons/profile/chevron.svg" alt="" />
+                </button>
+                <div class="settings-divider"></div>
+                <button class="settings-row" type="button">
+                  <img class="settings-icon" src="./assets/icons/profile/warning.svg" alt="" />
+                  <span class="settings-label">Уведомления</span>
+                  <img class="chevron-right small" src="./assets/icons/profile/chevron.svg" alt="" />
+                </button>
+                <div class="settings-divider"></div>
+                <button class="settings-row" type="button">
+                  <span class="settings-label">Конфиденциальность</span>
+                  <img class="chevron-right small" src="./assets/icons/profile/chevron.svg" alt="" />
+                </button>
+              </article>
+
+              <article class="support-card">
+                <div class="support-text">
+                  <div class="support-title-row">
+                    <img class="support-icon" src="./assets/icons/profile/smart-support.svg" alt="" />
+                    <h3 class="support-title">Умная поддержка</h3>
+                  </div>
+                  <p class="support-desc">Знает всё про билеты, перелёты и багаж</p>
+                </div>
+                <button class="support-btn" id="supportAskBtn" type="button">Задать вопрос</button>
+              </article>
+
+              <article class="docs-card">
+                <div class="docs-header">
+                  <p class="docs-title">Документы</p>
+                  <button class="docs-add" type="button" aria-label="Добавить документ">
+                    <img src="./assets/icons/profile/plus.svg" alt="" />
+                  </button>
+                </div>
+                <div class="docs-grid">
+                  <div class="doc-tile">
+                    <p class="doc-subtitle">Паспорт РФ</p>
+                    <p class="doc-name">Олег П.</p>
+                    <img class="doc-icon" src="./assets/icons/profile/russian-passport.svg" alt="" />
+                  </div>
+                  <div class="doc-tile">
+                    <p class="doc-subtitle">Загранпаспорт</p>
+                    <p class="doc-name">Konstantin K.</p>
+                    <img class="doc-icon" src="./assets/icons/profile/globe-anywhere.svg" alt="" />
+                  </div>
+                  <div class="doc-tile doc-tile-warning">
+                    <p class="doc-subtitle warning">Истекает срок</p>
+                    <p class="doc-name">Alena Z.</p>
+                    <img class="doc-icon" src="./assets/icons/profile/globe-anywhere.svg" alt="" />
+                  </div>
+                  <div class="doc-tile">
+                    <p class="doc-subtitle">Паспорт РФ</p>
+                    <p class="doc-name">Алёна З.</p>
+                    <img class="doc-icon" src="./assets/icons/profile/russian-passport.svg" alt="" />
+                  </div>
+                </div>
+              </article>
             </div>
           </div>
         </div>
 
-        <!-- "All orders" button -->
-        <button class="sec-btn">Посмотреть все заказы</button>
-      </div>
+        <section class="screen-support" id="screenSupport" aria-hidden="true">
+          <header class="support-navbar">
+            <button class="support-back" id="supportBackBtn" type="button" aria-label="Назад">
+              <img src="./assets/icons/profile/chevron.svg" alt="" />
+            </button>
+            <div class="support-navtitle">
+              <p class="support-navtitle-main">Умная поддержка</p>
+              <p class="support-navtitle-sub">Первая версия нейросети</p>
+            </div>
+          </header>
 
-      <div class="gap-16"></div>
-    </div><!-- /chat -->
-
-    <!-- Bottom -->
-    <div class="bottom">
-      <div class="suggests">
-        <button class="chip">Нет нужного заказа</button>
-      </div>
-      <div class="input-wrap">
-        <span class="input-placeholder">Напишите что-нибудь</span>
-        <button class="send-btn">
-          <img src="https://www.figma.com/api/mcp/asset/8feff1cd-3bda-421a-9706-f97d97e0d90c" class="send-btn-bg" alt="">
-          <img src="assets/send.svg" alt="Отправить">
-        </button>
-      </div>
-      <div class="tabbar-area">
-        <div class="tabbar-fade"></div>
-        <div class="tabbar-pills">
-          <div class="tab">
-            <div class="tab-icon"><img src="https://www.figma.com/api/mcp/asset/9f1a20d7-06e3-4cce-9e2b-57bb8a8644a8" alt=""></div>
-            <span class="tab-label">Билеты</span>
-          </div>
-          <div class="tab">
-            <div class="tab-icon"><img src="https://www.figma.com/api/mcp/asset/f69a9a03-e6c3-4c7e-8c79-b6fb4c8a97e3" alt=""></div>
-            <span class="tab-label">Отели</span>
-          </div>
-          <div class="tab">
-            <div class="tab-icon"><img src="https://www.figma.com/api/mcp/asset/ecb2b195-80c5-4eaf-87fc-95b8b60f253b" alt=""></div>
-            <span class="tab-label">Впечатления</span>
-          </div>
-          <div class="tab">
-            <div class="tab-icon"><img src="https://www.figma.com/api/mcp/asset/091cc7b2-793d-4871-b138-e7b08a523734" alt=""></div>
-            <span class="tab-label">Ассистент</span>
-          </div>
-          <div class="tab active">
-            <div class="tab-icon"><img src="https://www.figma.com/api/mcp/asset/290aa6f9-1221-4d05-a45f-85d41ab170c1" alt=""></div>
-            <span class="tab-label">Профиль</span>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-  <!-- /s1 -->
-
-
-  <!-- ==================== S2: DESCRIBE PROBLEM ==================== -->
-  <div class="screen" id="s2">
-    <nav class="navbar">
-      <div class="statusbar">
-        <span class="statusbar-time">9:41</span>
-        <div class="statusbar-icons"><img src="https://www.figma.com/api/mcp/asset/4dcd840e-58ad-41b7-a22e-c1ffc55c3cff" alt=""></div>
-      </div>
-      <div class="toolbar">
-        <div class="toolbar-left">
-          <button class="back-btn" onclick="goBack()">
-            <div class="back-btn-glass"></div>
-            <img src="https://www.figma.com/api/mcp/asset/5b3db11f-e229-4d4c-9ce1-dee6c1d02c5f" alt="Назад">
-          </button>
-        </div>
-        <div class="toolbar-title">
-          <div class="toolbar-title-main">Умная поддержка</div>
-          <div class="toolbar-title-sub">Первая версия нейросети</div>
-        </div>
-      </div>
-    </nav>
-
-    <div class="chat" id="chat-s2">
-      <!-- Shortened orders widget reference -->
-      <div class="widget" style="position:relative;padding:12px 16px;">
-        <img class="tail" style="position:absolute;bottom:0;left:1px;width:10px;height:10px;transform:rotate(180deg) scaleY(-1);" src="https://www.figma.com/api/mcp/asset/9d2a3b73-a3d0-464a-8587-dc7f91b2aeac" alt="">
-        <p class="widget-q">По какому заказу у вас вопрос?</p>
-        <div class="orders">
-          <div class="order-card">
-            <div class="order-row">
-              <div class="order-info">
-                <div class="order-route">Стамбул — Екатеринбург</div>
-                <div class="order-dates">24 дек, чт — 25 дек, пн</div>
+          <div class="support-chat">
+            <div class="chat-bubbles">
+              <div class="chat-bubble">
+                Привет! Я — умный ассистент Авиасейлс. Знаю всё про билеты, перелёты и багаж, помогу с вопросами по вашим заказам
               </div>
-              <div class="logos"><div class="logo"><img src="https://www.figma.com/api/mcp/asset/38385012-8943-44a5-9a9d-e0eec67373b8" alt=""></div><div class="logo"><img src="https://www.figma.com/api/mcp/asset/18fdb84d-6272-43d1-8670-a641532611c0" alt=""></div></div>
-            </div>
-          </div>
-          <div class="order-card">
-            <div class="badge"><span class="badge-text">Билет от Авиасейлс</span></div>
-            <div class="order-row">
-              <div class="order-info">
-                <div class="order-route">Москва — Уфа</div>
-                <div class="order-dates">24 дек, чт — 25 дек, пн</div>
+              <div class="chat-bubble">
+                Опишите свою ситуацию как можно подробнее — так я быстрее со всем разберусь
               </div>
-              <div class="logos logo-single"><div class="logo"><img src="https://www.figma.com/api/mcp/asset/4dd917bb-f254-461b-82f1-f8052439a40d" alt=""></div></div>
-            </div>
-          </div>
-          <div class="order-card">
-            <div class="order-row">
-              <div class="order-info">
-                <div class="order-route">Стамбул — Екатеринбург</div>
-                <div class="order-dates">28 дек, сб — 30 дек, пн</div>
+              <div class="chat-bubble">
+                С чем нужна помощь?
               </div>
-              <div class="logos"><div class="logo"><img src="https://www.figma.com/api/mcp/asset/38385012-8943-44a5-9a9d-e0eec67373b8" alt=""></div><div class="logo"><img src="https://www.figma.com/api/mcp/asset/18fdb84d-6272-43d1-8670-a641532611c0" alt=""></div></div>
+            </div>
+
+            <div class="chat-suggests">
+              <button class="chat-suggest" type="button">Как найти билет</button>
+              <button class="chat-suggest" type="button">Где найти чек</button>
+              <button class="chat-suggest" type="button">Как изменить данные в билете</button>
+              <button class="chat-suggest" type="button">Как вернуть или обменять билет</button>
             </div>
           </div>
-        </div>
-        <button class="sec-btn">Посмотреть все заказы</button>
-      </div>
 
-      <!-- User selected order bubble -->
-      <div class="gap-8"></div>
-      <div class="msg-group msg-group-user" id="selected-order-s2" style="display:none;" data-animate-target="bubble">
-        <div class="bubble bubble-user" id="selected-order-text"></div>
-        <img class="tail" src="https://www.figma.com/api/mcp/asset/1590b278-2e77-469e-adad-f43bc7b9e782" alt="">
-      </div>
-
-      <!-- Bot asks to describe -->
-      <div class="msg-group msg-group-bot">
-        <div class="bubble bubble-bot">
-          <p>Правильно понимаю, что ваш вопрос по этому билету касается <strong>Выбора мест</strong>?</p>
-          <p>Если да — пожалуйста, опишите вашу ситуацию подробнее, чтобы оператор сразу пришёл с решением. Если тема другая — просто напишите об этом.</p>
-          <p>Например, «добавить место для пассажира Иванова И.И на рейс Москва — Уфа»</p>
-        </div>
-        <img class="tail" src="https://www.figma.com/api/mcp/asset/9d2a3b73-a3d0-464a-8587-dc7f91b2aeac" alt="">
-      </div>
-
-      <div class="gap-16"></div>
-    </div>
-
-    <div class="bottom">
-      <div class="input-wrap" id="wrap-s2">
-        <textarea class="real-input" id="input-s2" placeholder="Напишите что-нибудь" rows="1"></textarea>
-        <button class="send-btn" onclick="sendComment('s2')">
-          <img src="https://www.figma.com/api/mcp/asset/8feff1cd-3bda-421a-9706-f97d97e0d90c" class="send-btn-bg" alt="">
-          <img src="assets/send.svg" alt="Отправить">
-        </button>
-      </div>
-      <div class="tabbar-area">
-        <div class="tabbar-fade"></div>
-        <div class="tabbar-pills">
-          <div class="tab"><div class="tab-icon"><img src="https://www.figma.com/api/mcp/asset/9f1a20d7-06e3-4cce-9e2b-57bb8a8644a8" alt=""></div><span class="tab-label">Билеты</span></div>
-          <div class="tab"><div class="tab-icon"><img src="https://www.figma.com/api/mcp/asset/f69a9a03-e6c3-4c7e-8c79-b6fb4c8a97e3" alt=""></div><span class="tab-label">Отели</span></div>
-          <div class="tab"><div class="tab-icon"><img src="https://www.figma.com/api/mcp/asset/ecb2b195-80c5-4eaf-87fc-95b8b60f253b" alt=""></div><span class="tab-label">Впечатления</span></div>
-          <div class="tab"><div class="tab-icon"><img src="https://www.figma.com/api/mcp/asset/091cc7b2-793d-4871-b138-e7b08a523734" alt=""></div><span class="tab-label">Ассистент</span></div>
-          <div class="tab active"><div class="tab-icon"><img src="https://www.figma.com/api/mcp/asset/290aa6f9-1221-4d05-a45f-85d41ab170c1" alt=""></div><span class="tab-label">Профиль</span></div>
-        </div>
-      </div>
-    </div>
-  </div>
-  <!-- /s2 -->
-
-
-  <!-- ==================== S3: MANDATORY DOC ==================== -->
-  <div class="screen" id="s3">
-    <nav class="navbar">
-      <div class="statusbar">
-        <span class="statusbar-time">9:41</span>
-        <div class="statusbar-icons"><img src="https://www.figma.com/api/mcp/asset/4dcd840e-58ad-41b7-a22e-c1ffc55c3cff" alt=""></div>
-      </div>
-      <div class="toolbar">
-        <div class="toolbar-left">
-          <button class="back-btn" onclick="goBack()">
-            <div class="back-btn-glass"></div>
-            <img src="https://www.figma.com/api/mcp/asset/5b3db11f-e229-4d4c-9ce1-dee6c1d02c5f" alt="Назад">
-          </button>
-        </div>
-        <div class="toolbar-title">
-          <div class="toolbar-title-main">Умная поддержка</div>
-          <div class="toolbar-title-sub">Первая версия нейросети</div>
-        </div>
-      </div>
-    </nav>
-
-    <div class="chat" id="chat-s3">
-      <!-- Bot: previous ask -->
-      <div class="msg-group msg-group-bot">
-        <div class="bubble bubble-bot">
-          Чтобы мой коллега сразу взялся за решение проблемы, а не задавал наводящие вопросы — опишите, пожалуйста подробно, что именно у вас случилось?
-        </div>
-        <img class="tail" src="https://www.figma.com/api/mcp/asset/9d2a3b73-a3d0-464a-8587-dc7f91b2aeac" alt="">
-      </div>
-
-      <!-- User: description (dynamic from s2 input) -->
-      <div class="msg-group msg-group-user" id="user-msg-s3">
-        <div class="bubble bubble-user">У меня перенесли рейс Москва—Стамбул на 1 день, и я хочу обменять этот билет</div>
-        <img class="tail" src="https://www.figma.com/api/mcp/asset/1590b278-2e77-469e-adad-f43bc7b9e782" alt="">
-      </div>
-
-      <!-- Bot: request documents -->
-      <div class="msg-group msg-group-bot">
-        <div class="bubble bubble-bot" style="max-width:358px;">
-          <p>Чтобы мы смогли помочь, понадобятся документы.</p>
-          <p>Пожалуйста, прикрепите: скриншот письма или СМС от авиакомпании о переносе рейса.</p>
-          <p>Если их нет, подойдёт скриншот или фото онлайн-табло с сайта аэропорта</p>
-          <!-- Attach button -->
-          <button class="sec-btn" style="margin-top:16px;border-radius:16px;" onclick="goto('s7')">
-            <img src="https://www.figma.com/api/mcp/asset/053a9ae2-3a22-4f05-bb69-cff4cf9b086f" alt="📎">
-            Прикрепить файлы
-          </button>
-        </div>
-        <img class="tail" src="https://www.figma.com/api/mcp/asset/9d2a3b73-a3d0-464a-8587-dc7f91b2aeac" alt="">
-      </div>
-
-      <div class="gap-16"></div>
-    </div>
-
-    <div class="bottom">
-      <div class="suggests">
-        <button class="chip" onclick="goto('s6')">Дополнить своё описание</button>
-      </div>
-      <div class="input-wrap" onclick="goto('s5')">
-        <span class="input-placeholder">Напишите что-нибудь</span>
-        <button class="send-btn">
-          <img src="https://www.figma.com/api/mcp/asset/8feff1cd-3bda-421a-9706-f97d97e0d90c" class="send-btn-bg" alt="">
-          <img src="assets/send.svg" alt="Отправить">
-        </button>
-      </div>
-      <div class="tabbar-area">
-        <div class="tabbar-fade"></div>
-        <div class="tabbar-pills">
-          <div class="tab"><div class="tab-icon"><img src="https://www.figma.com/api/mcp/asset/9f1a20d7-06e3-4cce-9e2b-57bb8a8644a8" alt=""></div><span class="tab-label">Билеты</span></div>
-          <div class="tab"><div class="tab-icon"><img src="https://www.figma.com/api/mcp/asset/f69a9a03-e6c3-4c7e-8c79-b6fb4c8a97e3" alt=""></div><span class="tab-label">Отели</span></div>
-          <div class="tab"><div class="tab-icon"><img src="https://www.figma.com/api/mcp/asset/ecb2b195-80c5-4eaf-87fc-95b8b60f253b" alt=""></div><span class="tab-label">Впечатления</span></div>
-          <div class="tab"><div class="tab-icon"><img src="https://www.figma.com/api/mcp/asset/091cc7b2-793d-4871-b138-e7b08a523734" alt=""></div><span class="tab-label">Ассистент</span></div>
-          <div class="tab active"><div class="tab-icon"><img src="https://www.figma.com/api/mcp/asset/290aa6f9-1221-4d05-a45f-85d41ab170c1" alt=""></div><span class="tab-label">Профиль</span></div>
-        </div>
-      </div>
-    </div>
-  </div>
-  <!-- /s3 -->
-
-
-  <!-- ==================== S5: TEXT BRANCH DEAD-END ==================== -->
-  <div class="screen" id="s5">
-    <nav class="navbar">
-      <div class="statusbar">
-        <span class="statusbar-time">9:41</span>
-        <div class="statusbar-icons"><img src="https://www.figma.com/api/mcp/asset/4dcd840e-58ad-41b7-a22e-c1ffc55c3cff" alt=""></div>
-      </div>
-      <div class="toolbar">
-        <div class="toolbar-left">
-          <button class="back-btn" onclick="goBack()">
-            <div class="back-btn-glass"></div>
-            <img src="https://www.figma.com/api/mcp/asset/5b3db11f-e229-4d4c-9ce1-dee6c1d02c5f" alt="Назад">
-          </button>
-        </div>
-        <div class="toolbar-title">
-          <div class="toolbar-title-main">Умная поддержка</div>
-          <div class="toolbar-title-sub">Первая версия нейросети</div>
-        </div>
-      </div>
-    </nav>
-
-    <div class="chat" id="chat-s5">
-      <!-- Bot: previous request -->
-      <div class="msg-group msg-group-bot">
-        <div class="bubble bubble-bot" style="max-width:358px;">
-          <p>Чтобы мы смогли помочь, понадобятся документы.</p>
-          <p>Пожалуйста, прикрепите: скриншот письма или СМС от авиакомпании о переносе рейса.</p>
-          <p>Если их нет, подойдёт скриншот или фото онлайн-табло с сайта аэропорта</p>
-          <button class="sec-btn" style="margin-top:16px;border-radius:16px;opacity:0.5;pointer-events:none;">
-            <img src="https://www.figma.com/api/mcp/asset/053a9ae2-3a22-4f05-bb69-cff4cf9b086f" alt="📎">
-            Прикрепить файлы
-          </button>
-        </div>
-        <img class="tail" src="https://www.figma.com/api/mcp/asset/9d2a3b73-a3d0-464a-8587-dc7f91b2aeac" alt="">
-      </div>
-
-      <!-- User: no docs -->
-      <div class="msg-group msg-group-user">
-        <div class="bubble bubble-user">У меня сейчас нет с собой документов</div>
-        <img class="tail" src="https://www.figma.com/api/mcp/asset/1590b278-2e77-469e-adad-f43bc7b9e782" alt="">
-      </div>
-
-      <!-- Bot: dead-end response -->
-      <div class="msg-group msg-group-bot">
-        <div class="bubble bubble-bot" style="max-width:358px;">
-          <p>Без подтверждающих документов мы не сможем передать вопрос оператору.</p>
-          <p>Если файлов сейчас нет — ничего страшного. Возвращайтесь, когда они будут под рукой.</p>
-          <div class="warning-box">
-            <span class="warning-emoji">⚠️</span>
-            <p class="warning-text">Важный момент: этот диалог не сохранится, поэтому мне придётся задать пару вопросов заново.</p>
-          </div>
-        </div>
-        <img class="tail" src="https://www.figma.com/api/mcp/asset/9d2a3b73-a3d0-464a-8587-dc7f91b2aeac" alt="">
-      </div>
-
-      <div class="gap-16"></div>
-    </div>
-
-    <div class="bottom">
-      <div class="input-wrap">
-        <span class="input-placeholder">Напишите что-нибудь</span>
-        <button class="send-btn">
-          <img src="https://www.figma.com/api/mcp/asset/8feff1cd-3bda-421a-9706-f97d97e0d90c" class="send-btn-bg" alt="">
-          <img src="assets/send.svg" alt="Отправить">
-        </button>
-      </div>
-      <div class="tabbar-area">
-        <div class="tabbar-fade"></div>
-        <div class="tabbar-pills">
-          <div class="tab"><div class="tab-icon"><img src="https://www.figma.com/api/mcp/asset/9f1a20d7-06e3-4cce-9e2b-57bb8a8644a8" alt=""></div><span class="tab-label">Билеты</span></div>
-          <div class="tab"><div class="tab-icon"><img src="https://www.figma.com/api/mcp/asset/f69a9a03-e6c3-4c7e-8c79-b6fb4c8a97e3" alt=""></div><span class="tab-label">Отели</span></div>
-          <div class="tab"><div class="tab-icon"><img src="https://www.figma.com/api/mcp/asset/ecb2b195-80c5-4eaf-87fc-95b8b60f253b" alt=""></div><span class="tab-label">Впечатления</span></div>
-          <div class="tab"><div class="tab-icon"><img src="https://www.figma.com/api/mcp/asset/091cc7b2-793d-4871-b138-e7b08a523734" alt=""></div><span class="tab-label">Ассистент</span></div>
-          <div class="tab active"><div class="tab-icon"><img src="https://www.figma.com/api/mcp/asset/290aa6f9-1221-4d05-a45f-85d41ab170c1" alt=""></div><span class="tab-label">Профиль</span></div>
-        </div>
-      </div>
-    </div>
-  </div>
-  <!-- /s5 -->
-
-
-  <!-- ==================== S6: SUPPLEMENT DESCRIPTION ==================== -->
-  <div class="screen" id="s6">
-    <nav class="navbar">
-      <div class="statusbar">
-        <span class="statusbar-time">9:41</span>
-        <div class="statusbar-icons"><img src="https://www.figma.com/api/mcp/asset/4dcd840e-58ad-41b7-a22e-c1ffc55c3cff" alt=""></div>
-      </div>
-      <div class="toolbar">
-        <div class="toolbar-left">
-          <button class="back-btn" onclick="goBack()">
-            <div class="back-btn-glass"></div>
-            <img src="https://www.figma.com/api/mcp/asset/5b3db11f-e229-4d4c-9ce1-dee6c1d02c5f" alt="Назад">
-          </button>
-        </div>
-        <div class="toolbar-title">
-          <div class="toolbar-title-main">Умная поддержка</div>
-          <div class="toolbar-title-sub">Первая версия нейросети</div>
-        </div>
-      </div>
-    </nav>
-
-    <div class="chat" id="chat-s6">
-      <!-- Context: doc request -->
-      <div class="msg-group msg-group-bot">
-        <div class="bubble bubble-bot" style="max-width:358px;">
-          <p>Чтобы мы смогли помочь, понадобятся документы.</p>
-          <p>Пожалуйста, прикрепите: скриншот письма или СМС от авиакомпании о переносе рейса.</p>
-          <button class="sec-btn" style="margin-top:16px;border-radius:16px;opacity:0.5;pointer-events:none;">
-            <img src="https://www.figma.com/api/mcp/asset/053a9ae2-3a22-4f05-bb69-cff4cf9b086f" alt="📎">
-            Прикрепить файлы
-          </button>
-        </div>
-        <img class="tail" src="https://www.figma.com/api/mcp/asset/9d2a3b73-a3d0-464a-8587-dc7f91b2aeac" alt="">
-      </div>
-
-      <!-- User chip -->
-      <div class="msg-group msg-group-user">
-        <div class="bubble bubble-user" style="max-width:max-content">Дополнить своё описание</div>
-        <img class="tail" src="https://www.figma.com/api/mcp/asset/1590b278-2e77-469e-adad-f43bc7b9e782" alt="">
-      </div>
-
-      <!-- Bot: asks what to add -->
-      <div class="msg-group msg-group-bot">
-        <div class="bubble bubble-bot" style="max-width:max-content">Что хотели бы добавить?</div>
-        <img class="tail" src="https://www.figma.com/api/mcp/asset/9d2a3b73-a3d0-464a-8587-dc7f91b2aeac" alt="">
-      </div>
-
-      <div class="gap-16"></div>
-    </div>
-
-    <div class="bottom">
-      <div class="input-wrap" id="wrap-s6">
-        <textarea class="real-input" id="input-s6" placeholder="Напишите что-нибудь" rows="1"></textarea>
-        <button class="send-btn" onclick="sendComment('s6')">
-          <img src="https://www.figma.com/api/mcp/asset/8feff1cd-3bda-421a-9706-f97d97e0d90c" class="send-btn-bg" alt="">
-          <img src="assets/send.svg" alt="Отправить">
-        </button>
-      </div>
-      <div class="tabbar-area">
-        <div class="tabbar-fade"></div>
-        <div class="tabbar-pills">
-          <div class="tab"><div class="tab-icon"><img src="https://www.figma.com/api/mcp/asset/9f1a20d7-06e3-4cce-9e2b-57bb8a8644a8" alt=""></div><span class="tab-label">Билеты</span></div>
-          <div class="tab"><div class="tab-icon"><img src="https://www.figma.com/api/mcp/asset/f69a9a03-e6c3-4c7e-8c79-b6fb4c8a97e3" alt=""></div><span class="tab-label">Отели</span></div>
-          <div class="tab"><div class="tab-icon"><img src="https://www.figma.com/api/mcp/asset/ecb2b195-80c5-4eaf-87fc-95b8b60f253b" alt=""></div><span class="tab-label">Впечатления</span></div>
-          <div class="tab"><div class="tab-icon"><img src="https://www.figma.com/api/mcp/asset/091cc7b2-793d-4871-b138-e7b08a523734" alt=""></div><span class="tab-label">Ассистент</span></div>
-          <div class="tab active"><div class="tab-icon"><img src="https://www.figma.com/api/mcp/asset/290aa6f9-1221-4d05-a45f-85d41ab170c1" alt=""></div><span class="tab-label">Профиль</span></div>
-        </div>
-      </div>
-    </div>
-  </div>
-  <!-- /s6 -->
-
-
-  <!-- ==================== S6DOCS: DUPLICATE DOC REQUEST AFTER SUPPLEMENT ==================== -->
-  <div class="screen" id="s6docs">
-    <nav class="navbar">
-      <div class="statusbar">
-        <span class="statusbar-time">9:41</span>
-        <div class="statusbar-icons"><img src="https://www.figma.com/api/mcp/asset/4dcd840e-58ad-41b7-a22e-c1ffc55c3cff" alt=""></div>
-      </div>
-      <div class="toolbar">
-        <div class="toolbar-left">
-          <button class="back-btn" onclick="goBack()">
-            <div class="back-btn-glass"></div>
-            <img src="https://www.figma.com/api/mcp/asset/5b3db11f-e229-4d4c-9ce1-dee6c1d02c5f" alt="Назад">
-          </button>
-        </div>
-        <div class="toolbar-title">
-          <div class="toolbar-title-main">Умная поддержка</div>
-          <div class="toolbar-title-sub">Первая версия нейросети</div>
-        </div>
-      </div>
-    </nav>
-
-    <div class="chat" id="chat-s6docs">
-      <!-- User supplement text -->
-      <div class="msg-group msg-group-user" id="user-msg-s6docs">
-        <div class="bubble bubble-user">Списались именно за рейс Москва — Стамбул</div>
-        <img class="tail" src="https://www.figma.com/api/mcp/asset/1590b278-2e77-469e-adad-f43bc7b9e782" alt="">
-      </div>
-
-      <!-- Bot repeats documents request -->
-      <div class="msg-group msg-group-bot">
-        <div class="bubble bubble-bot" style="max-width:358px;">
-          <p>Добавил этот комментарий к вашей заявке.</p>
-          <p>Теперь остался последний шаг — прикрепите: скриншот письма или СМС от авиакомпании о переносе рейса.</p>
-          <p>Если их нет, подойдёт скриншот или фото онлайн-табло с сайта аэропорта</p>
-          <button class="sec-btn" style="margin-top:16px;border-radius:16px;" onclick="goto('s7')">
-            <img src="https://www.figma.com/api/mcp/asset/053a9ae2-3a22-4f05-bb69-cff4cf9b086f" alt="📎">
-            Прикрепить файлы
-          </button>
-        </div>
-        <img class="tail" src="https://www.figma.com/api/mcp/asset/9d2a3b73-a3d0-464a-8587-dc7f91b2aeac" alt="">
-      </div>
-
-      <div class="gap-16"></div>
-    </div>
-
-    <div class="bottom">
-      <div class="input-wrap">
-        <span class="input-placeholder">Напишите что-нибудь</span>
-        <button class="send-btn">
-          <img src="https://www.figma.com/api/mcp/asset/8feff1cd-3bda-421a-9706-f97d97e0d90c" class="send-btn-bg" alt="">
-          <img src="assets/send.svg" alt="Отправить">
-        </button>
-      </div>
-      <div class="tabbar-area">
-        <div class="tabbar-fade"></div>
-        <div class="tabbar-pills">
-          <div class="tab"><div class="tab-icon"><img src="https://www.figma.com/api/mcp/asset/9f1a20d7-06e3-4cce-9e2b-57bb8a8644a8" alt=""></div><span class="tab-label">Билеты</span></div>
-          <div class="tab"><div class="tab-icon"><img src="https://www.figma.com/api/mcp/asset/f69a9a03-e6c3-4c7e-8c79-b6fb4c8a97e3" alt=""></div><span class="tab-label">Отели</span></div>
-          <div class="tab"><div class="tab-icon"><img src="https://www.figma.com/api/mcp/asset/ecb2b195-80c5-4eaf-87fc-95b8b60f253b" alt=""></div><span class="tab-label">Впечатления</span></div>
-          <div class="tab"><div class="tab-icon"><img src="https://www.figma.com/api/mcp/asset/091cc7b2-793d-4871-b138-e7b08a523734" alt=""></div><span class="tab-label">Ассистент</span></div>
-          <div class="tab active"><div class="tab-icon"><img src="https://www.figma.com/api/mcp/asset/290aa6f9-1221-4d05-a45f-85d41ab170c1" alt=""></div><span class="tab-label">Профиль</span></div>
-        </div>
-      </div>
-    </div>
-  </div>
-  <!-- /s6docs -->
-
-
-  <!-- ==================== S7: EMAIL CHECK ==================== -->
-  <div class="screen" id="s7">
-    <nav class="navbar">
-      <div class="statusbar">
-        <span class="statusbar-time">9:41</span>
-        <div class="statusbar-icons"><img src="https://www.figma.com/api/mcp/asset/4dcd840e-58ad-41b7-a22e-c1ffc55c3cff" alt=""></div>
-      </div>
-      <div class="toolbar">
-        <div class="toolbar-left">
-          <button class="back-btn" onclick="goBack()">
-            <div class="back-btn-glass"></div>
-            <img src="https://www.figma.com/api/mcp/asset/5b3db11f-e229-4d4c-9ce1-dee6c1d02c5f" alt="Назад">
-          </button>
-        </div>
-        <div class="toolbar-title">
-          <div class="toolbar-title-main">Умная поддержка</div>
-          <div class="toolbar-title-sub">Первая версия нейросети</div>
-        </div>
-      </div>
-    </nav>
-
-    <div class="chat" id="chat-s7">
-      <!-- Bot: doc request (greyed out) -->
-      <div class="msg-group msg-group-bot">
-        <div class="bubble bubble-bot" style="max-width:358px;">
-          <p>Пожалуйста, прикрепите документы, подтверждающие перенос рейса.</p>
-        </div>
-        <img class="tail" src="https://www.figma.com/api/mcp/asset/9d2a3b73-a3d0-464a-8587-dc7f91b2aeac" alt="">
-      </div>
-
-      <!-- User supplement text (injected from s6) -->
-      <div id="inject-s7-msg"></div>
-
-      <!-- User: uploaded files -->
-      <div class="msg-group msg-group-user">
-        <div class="file-bubble">
-          <div class="file-pill">
-            <div class="file-icon">📄</div>
-            <div>
-              <div class="file-name">letter_screenshot.jpg</div>
-              <div class="file-size">3.2 МБ</div>
+          <form class="support-input" id="supportForm">
+            <div class="support-input-files" id="supportInputFiles" hidden></div>
+            <div class="support-input-row">
+              <input class="support-input-field" id="supportInput" type="text" placeholder="Напишите что-нибудь" aria-label="Сообщение" autocomplete="off" />
+              <button class="support-send-btn" id="supportSendBtn" type="submit" aria-label="Отправить">
+                <span class="support-send-circle" aria-hidden="true"></span>
+                <svg class="support-send-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                  <path d="M20.2061 6L21 7.4L12.5605 22L11.4756 21.71L10.4141 13.9463L15.335 11.0156L14.3115 9.29688L9.44824 12.1934L3 7.08105L3.29004 6H20.2061Z" fill="currentColor"/>
+                </svg>
+                <svg class="support-stop-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                  <rect x="6" y="6" width="12" height="12" rx="2" fill="currentColor"/>
+                </svg>
+              </button>
             </div>
-          </div>
-          <div class="file-pill">
-            <div class="file-icon">🖼️</div>
-            <div>
-              <div class="file-name">airport_table.png</div>
-              <div class="file-size">1.8 МБ</div>
+          </form>
+        </section>
+
+        <section class="screen-orders" id="screenOrders" aria-hidden="true">
+          <header class="ord-navbar">
+            <button class="ord-back" id="ordersBackBtn" type="button" aria-label="Назад">
+              <img src="./assets/icons/profile/chevron.svg" alt="" />
+            </button>
+            <button class="ord-nav-action" type="button" aria-label="Добавить в календарь">
+              <img src="./assets/icons/orders/calendar-add.png" alt="" />
+            </button>
+          </header>
+
+          <div class="ord-scroll">
+            <div class="ord-main">
+              <article class="ord-card ord-flight-card">
+                <div class="ord-badges">
+                  <span class="ord-badge ord-badge-brand">Билет от Авиасейлс</span>
+                  <span class="ord-badge ord-badge-green">Оплачен</span>
+                </div>
+                <div class="ord-row-header">
+                  <div class="ord-row-text">
+                    <h2 class="ord-row-title">Москва — Владивосток</h2>
+                    <p class="ord-row-meta">8ч 5м в пути</p>
+                  </div>
+                  <span class="ord-chev-down" aria-hidden="true">
+                    <img src="./assets/icons/profile/chevron.svg" alt="" />
+                  </span>
+                </div>
+                <div class="ord-itinerary">
+                  <div class="ord-itinerary-head">
+                    <span class="ord-airline-logo" aria-hidden="true">
+                      <img src="./assets/icons/orders/airline-aeroflot.png" alt="" />
+                    </span>
+                    <div class="ord-airline-text">
+                      <p class="ord-airline-name">Аэрофлот</p>
+                      <p class="ord-airline-time">8ч 5м в полёте</p>
+                    </div>
+                    <button class="ord-pill-btn" type="button">Подробнее</button>
+                  </div>
+                  <div class="ord-routes">
+                    <div class="ord-routes-icon" aria-hidden="true">
+                      <img src="./assets/icons/orders/route-dots.svg" alt="" />
+                    </div>
+                    <div class="ord-routes-text">
+                      <div class="ord-route-row">
+                        <div class="ord-route-time">
+                          <span class="ord-route-hh">13:40</span>
+                          <span class="ord-route-date">4 ноя, пт</span>
+                        </div>
+                        <div class="ord-route-place">
+                          <span class="ord-route-city">Москва</span>
+                          <span class="ord-route-airport">Шереметьево, SVO</span>
+                        </div>
+                      </div>
+                      <div class="ord-route-row">
+                        <div class="ord-route-time">
+                          <span class="ord-route-hh">21:25</span>
+                          <span class="ord-route-date">4 ноя, пт</span>
+                        </div>
+                        <div class="ord-route-place">
+                          <span class="ord-route-city">Владивосток</span>
+                          <span class="ord-route-airport">Кневичи, VVO</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div class="ord-flight-buttons">
+                  <button class="ord-secondary-btn" type="button">
+                    <img class="ord-icon-24" src="./assets/icons/orders/download-dark.svg" alt="" />
+                    Скачать билет
+                  </button>
+                  <button class="ord-text-btn" type="button">К управлению заказом</button>
+                </div>
+              </article>
+
+              <article class="ord-card ord-list-row ord-list-expand" id="ordPaxCard">
+                <div class="ord-row-header ord-row-header-toggle" role="button" tabindex="0" aria-expanded="false" aria-controls="ordPaxBody" data-action="toggle-pax">
+                  <div class="ord-row-text">
+                    <h2 class="ord-row-title">2 пассажира</h2>
+                    <p class="ord-row-meta">Konstantin Konstantinopolsky, Анна Сергеевна Ким</p>
+                  </div>
+                  <span class="ord-chev-down" aria-hidden="true">
+                    <img src="./assets/icons/profile/chevron.svg" alt="" />
+                  </span>
+                </div>
+
+                <div class="ord-row-body" id="ordPaxBody" hidden>
+                  <div class="ord-pax-section">
+                    <span class="ord-pax-icon ord-pax-icon-blue" aria-hidden="true">
+                      <img src="./assets/icons/orders/passenger.png" alt="" />
+                    </span>
+                    <div class="ord-pax-content">
+                      <div class="ord-pax-head">
+                        <p class="ord-pax-name">Konstantin Konstantinopolsky</p>
+                        <p class="ord-pax-sub">Взрослый</p>
+                      </div>
+                      <p class="ord-pax-line">03.08.1989, Казахстан</p>
+                      <div class="ord-pax-doc">
+                        <p class="ord-pax-label">Паспорт</p>
+                        <p class="ord-pax-value">5518 993146, до 12.04.2025</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="ord-pax-divider"></div>
+
+                  <div class="ord-pax-section">
+                    <span class="ord-pax-icon ord-pax-icon-blue" aria-hidden="true">
+                      <img src="./assets/icons/orders/passenger.png" alt="" />
+                    </span>
+                    <div class="ord-pax-content">
+                      <div class="ord-pax-head">
+                        <p class="ord-pax-name">Анна Сергеевна Ким</p>
+                        <p class="ord-pax-sub">Взрослый</p>
+                      </div>
+                      <p class="ord-pax-line">15.10.1991, Россия</p>
+                      <div class="ord-pax-doc">
+                        <p class="ord-pax-label">Паспорт РФ</p>
+                        <p class="ord-pax-value">7516 881002</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="ord-pax-divider"></div>
+
+                  <div class="ord-pax-section">
+                    <span class="ord-pax-icon ord-pax-icon-purple" aria-hidden="true">
+                      <img src="./assets/icons/orders/mail.png" alt="" />
+                    </span>
+                    <div class="ord-pax-content">
+                      <div class="ord-pax-row">
+                        <p class="ord-pax-name">Контакты</p>
+                        <button class="ord-pax-pill" type="button">Изменить</button>
+                      </div>
+                      <p class="ord-pax-line" id="ordPaxEmail">konstantin.konstantinopolsky@gmail.com</p>
+                      <p class="ord-pax-line">+7 905 787 65 65</p>
+                    </div>
+                  </div>
+                </div>
+              </article>
+
+              <article class="ord-card ord-list-row">
+                <div class="ord-row-header ord-row-header-static">
+                  <div class="ord-row-text">
+                    <h2 class="ord-row-title">36 570 ₽</h2>
+                    <p class="ord-row-meta">За билеты, доп. багаж и все платные услуги</p>
+                  </div>
+                  <span class="ord-chev-down" aria-hidden="true">
+                    <img src="./assets/icons/profile/chevron.svg" alt="" />
+                  </span>
+                </div>
+              </article>
             </div>
+
+            <article class="ord-card ord-mgmt-card">
+              <div class="ord-mgmt-header">
+                <h3 class="ord-mgmt-title">Управление заказом</h3>
+              </div>
+
+              <div class="ord-data-wrap">
+                <div class="ord-data-block">
+                  <div class="ord-data-row">
+                    <div class="ord-data-text">
+                      <p class="ord-data-value">406021880</p>
+                      <p class="ord-data-hint">заказ от 5 июн 2023</p>
+                    </div>
+                    <button class="ord-data-action" type="button" aria-label="Скопировать номер заказа">
+                      <img src="./assets/icons/orders/copy.svg" alt="" />
+                    </button>
+                  </div>
+                  <div class="ord-data-divider"></div>
+                  <div class="ord-data-row">
+                    <div class="ord-data-text">
+                      <p class="ord-data-value">VWYHAI/74ЧЛБ</p>
+                      <p class="ord-data-hint">номер бронирования</p>
+                    </div>
+                    <button class="ord-data-action" type="button" aria-label="Подробнее">
+                      <img src="./assets/icons/orders/info.svg" alt="" />
+                    </button>
+                    <button class="ord-data-action" type="button" aria-label="Скопировать номер бронирования">
+                      <img src="./assets/icons/orders/copy.svg" alt="" />
+                    </button>
+                  </div>
+                  <div class="ord-data-divider"></div>
+                  <div class="ord-data-row">
+                    <div class="ord-data-text">
+                      <p class="ord-data-value">Справка о стоимости</p>
+                      <p class="ord-data-hint">можно использовать вместо чека</p>
+                    </div>
+                    <button class="ord-data-action" type="button" aria-label="Скачать справку">
+                      <img src="./assets/icons/orders/download.svg" alt="" />
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <ul class="ord-actions-list">
+                <li class="ord-action-item">
+                  <button class="ord-action-row" type="button">
+                    <span class="ord-action-label">Вернуть билет</span>
+                    <img class="ord-action-chev" src="./assets/icons/profile/chevron.svg" alt="" />
+                  </button>
+                </li>
+                <li class="ord-action-divider"></li>
+                <li class="ord-action-item">
+                  <button class="ord-action-row" type="button">
+                    <span class="ord-action-label">Обменять билет</span>
+                    <img class="ord-action-chev" src="./assets/icons/profile/chevron.svg" alt="" />
+                  </button>
+                </li>
+                <li class="ord-action-divider"></li>
+                <li class="ord-action-item">
+                  <button class="ord-action-row" type="button">
+                    <span class="ord-action-label">Изменить данные пассажиров</span>
+                    <img class="ord-action-chev" src="./assets/icons/profile/chevron.svg" alt="" />
+                  </button>
+                </li>
+                <li class="ord-action-divider"></li>
+                <li class="ord-action-item">
+                  <button class="ord-action-row" type="button">
+                    <span class="ord-action-label">Задать любой вопрос по заказу</span>
+                    <img class="ord-action-chev" src="./assets/icons/profile/chevron.svg" alt="" />
+                  </button>
+                </li>
+              </ul>
+            </article>
+
+            <article class="ord-card ord-upsell">
+              <div class="ord-upsell-head">
+                <h2 class="ord-upsell-title">Зарегистрируем вас<br />на все рейсы</h2>
+                <span class="ord-upsell-sticker ord-sticker-money" aria-hidden="true">
+                  <img src="./assets/icons/orders/sticker-money.png" alt="" />
+                </span>
+              </div>
+              <p class="ord-upsell-desc">Пройдём за вас онлайн-регистрацию и пришлём посадочные на почту</p>
+              <p class="ord-upsell-link">
+                <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                  <circle cx="8" cy="8" r="6.25" stroke="currentColor" stroke-width="1.2"/>
+                  <path d="M8 7.5v3.5M8 5.75v.01" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/>
+                </svg>
+                Важные нюансы
+              </p>
+              <div class="ord-upsell-controls">
+                <div class="ord-upsell-price-block">
+                  <p class="ord-upsell-price">380 ₽</p>
+                  <p class="ord-upsell-price-note">За всех пассажиров</p>
+                </div>
+                <button class="ord-add-btn" type="button" aria-label="Добавить">
+                  <svg viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                    <path d="M10 4v12M4 10h12" stroke="#fff" stroke-width="1.8" stroke-linecap="round"/>
+                  </svg>
+                </button>
+              </div>
+            </article>
+
+            <article class="ord-card ord-upsell">
+              <div class="ord-upsell-head">
+                <h2 class="ord-upsell-title">Страховка для пассажира и багажа</h2>
+                <span class="ord-upsell-sticker ord-sticker-shield" aria-hidden="true">
+                  <img src="./assets/icons/orders/sticker-shield.svg" alt="" />
+                </span>
+              </div>
+              <ul class="ord-feat-list">
+                <li>
+                  <img src="./assets/icons/orders/check-circle.svg" alt="" />
+                  <span>От задержки, потери или повреждения багажа</span>
+                </li>
+                <li>
+                  <img src="./assets/icons/orders/check-circle.svg" alt="" />
+                  <span>От задержки рейса</span>
+                </li>
+                <li>
+                  <img src="./assets/icons/orders/check-circle.svg" alt="" />
+                  <span>От несчастного случая — с выплатой до 500 000 ₽</span>
+                </li>
+              </ul>
+              <p class="ord-upsell-link">
+                <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                  <circle cx="8" cy="8" r="6.25" stroke="currentColor" stroke-width="1.2"/>
+                  <path d="M8 7.5v3.5M8 5.75v.01" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/>
+                </svg>
+                Важные нюансы
+              </p>
+              <div class="ord-upsell-controls">
+                <div class="ord-upsell-price-block">
+                  <p class="ord-upsell-price">3 080 ₽</p>
+                  <p class="ord-upsell-price-note">За всех пассажиров</p>
+                </div>
+                <button class="ord-add-btn" type="button" aria-label="Добавить">
+                  <svg viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                    <path d="M10 4v12M4 10h12" stroke="#fff" stroke-width="1.8" stroke-linecap="round"/>
+                  </svg>
+                </button>
+              </div>
+            </article>
+
+            <button class="ord-delete-btn" type="button">
+              <img class="ord-icon-24" src="./assets/icons/orders/delete.png" alt="" />
+              Удалить заказ
+            </button>
           </div>
+        </section>
+
+        <div class="app-snackbar" id="appSnackbar" role="status" aria-live="polite" aria-hidden="true">
+          <span class="app-snackbar-icon" aria-hidden="true">
+            <img src="./assets/icons/allowed.png" alt="" />
+          </span>
+          <span class="app-snackbar-text" id="appSnackbarText">Вы подтвердили новый адрес почты</span>
         </div>
-        <img class="tail" src="https://www.figma.com/api/mcp/asset/1590b278-2e77-469e-adad-f43bc7b9e782" alt="">
-      </div>
 
-      <!-- Bot: email confirmation -->
-      <div class="msg-group msg-group-bot">
-        <div class="bubble bubble-bot" style="max-width:358px;">
-          Последнее уточнение. Ответ оператора придёт на почту <strong>ivanov.ivan@yandex.ru</strong>. Отправляем туда или укажете другой адрес?
-        </div>
-        <img class="tail" src="https://www.figma.com/api/mcp/asset/9d2a3b73-a3d0-464a-8587-dc7f91b2aeac" alt="">
-      </div>
-
-      <div class="gap-16"></div>
-    </div>
-
-    <div class="bottom">
-      <div class="suggests">
-        <button class="chip" onclick="goto('s9b')">Отправить на неё</button>
-        <button class="chip" onclick="goto('s8')">Изменить почту</button>
-      </div>
-      <div class="input-wrap">
-        <span class="input-placeholder">Напишите что-нибудь</span>
-        <button class="send-btn">
-          <img src="https://www.figma.com/api/mcp/asset/8feff1cd-3bda-421a-9706-f97d97e0d90c" class="send-btn-bg" alt="">
-          <img src="assets/send.svg" alt="Отправить">
-        </button>
-      </div>
-      <div class="tabbar-area">
-        <div class="tabbar-fade"></div>
-        <div class="tabbar-pills">
-          <div class="tab"><div class="tab-icon"><img src="https://www.figma.com/api/mcp/asset/9f1a20d7-06e3-4cce-9e2b-57bb8a8644a8" alt=""></div><span class="tab-label">Билеты</span></div>
-          <div class="tab"><div class="tab-icon"><img src="https://www.figma.com/api/mcp/asset/f69a9a03-e6c3-4c7e-8c79-b6fb4c8a97e3" alt=""></div><span class="tab-label">Отели</span></div>
-          <div class="tab"><div class="tab-icon"><img src="https://www.figma.com/api/mcp/asset/ecb2b195-80c5-4eaf-87fc-95b8b60f253b" alt=""></div><span class="tab-label">Впечатления</span></div>
-          <div class="tab"><div class="tab-icon"><img src="https://www.figma.com/api/mcp/asset/091cc7b2-793d-4871-b138-e7b08a523734" alt=""></div><span class="tab-label">Ассистент</span></div>
-          <div class="tab active"><div class="tab-icon"><img src="https://www.figma.com/api/mcp/asset/290aa6f9-1221-4d05-a45f-85d41ab170c1" alt=""></div><span class="tab-label">Профиль</span></div>
-        </div>
-      </div>
-    </div>
-  </div>
-  <!-- /s7 -->
-
-
-  <!-- ==================== S8: CHANGE EMAIL ==================== -->
-  <div class="screen" id="s8">
-    <nav class="navbar">
-      <div class="statusbar">
-        <span class="statusbar-time">9:41</span>
-        <div class="statusbar-icons"><img src="https://www.figma.com/api/mcp/asset/4dcd840e-58ad-41b7-a22e-c1ffc55c3cff" alt=""></div>
-      </div>
-      <div class="toolbar">
-        <div class="toolbar-left">
-          <button class="back-btn" onclick="goBack()">
-            <div class="back-btn-glass"></div>
-            <img src="https://www.figma.com/api/mcp/asset/5b3db11f-e229-4d4c-9ce1-dee6c1d02c5f" alt="Назад">
+        <nav class="tabbar" aria-label="Главная навигация">
+          <button class="tab active" id="ticketsTab" type="button">
+            <svg class="icon-24" viewBox="0 0 30 30" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+              <path d="M23.5037 5.25003C22.2971 5.4224 21.1635 5.93144 20.2331 6.71874C18.8328 7.90361 17.4968 9.16151 16.2307 10.487L7.55599 8.20418C6.33982 7.88414 5.08412 8.5634 4.68644 9.75644L12.7892 14.3866L9.81737 17.8537L6.45433 17.1811L4.33301 19.3024L8.57565 21.4237L10.697 25.6663L12.8183 23.545L12.1457 20.1819L15.6127 17.2102L20.2428 25.3128C21.4358 24.9151 22.1151 23.6594 21.795 22.4432L19.5123 13.7687C20.8378 12.5025 22.0957 11.1666 23.2806 9.76624C24.0679 8.83579 24.5769 7.70224 24.7493 6.49565L24.7687 6.35955C24.813 6.04972 24.7068 5.73513 24.4855 5.51383C24.2642 5.29252 23.9496 5.18632 23.6398 5.23058L23.5037 5.25003Z" fill="currentColor"/>
+            </svg>
+            <span>Билеты</span>
           </button>
-        </div>
-        <div class="toolbar-title">
-          <div class="toolbar-title-main">Умная поддержка</div>
-          <div class="toolbar-title-sub">Первая версия нейросети</div>
-        </div>
-      </div>
-    </nav>
-
-    <div class="chat" id="chat-s8">
-      <!-- Bot: email question (greyed) -->
-      <div class="msg-group msg-group-bot">
-        <div class="bubble bubble-bot" style="max-width:358px;opacity:0.5;">
-          Последнее уточнение. Ответ оператора придёт на почту <strong>ivanov.ivan@yandex.ru</strong>. Отправляем туда или укажете другой адрес?
-        </div>
-        <img class="tail" style="opacity:0.5;" src="https://www.figma.com/api/mcp/asset/9d2a3b73-a3d0-464a-8587-dc7f91b2aeac" alt="">
-      </div>
-
-      <!-- User chip -->
-      <div class="msg-group msg-group-user">
-        <div class="bubble bubble-user" style="max-width:max-content">Изменить почту</div>
-        <img class="tail" src="https://www.figma.com/api/mcp/asset/1590b278-2e77-469e-adad-f43bc7b9e782" alt="">
-      </div>
-
-      <!-- Bot: ask for new email -->
-      <div class="msg-group msg-group-bot">
-        <div class="bubble bubble-bot">
-          Напишите адрес электронной почты, на который вам будет удобно получить ответ
-        </div>
-        <img class="tail" src="https://www.figma.com/api/mcp/asset/9d2a3b73-a3d0-464a-8587-dc7f91b2aeac" alt="">
-      </div>
-
-      <div class="gap-16"></div>
-    </div>
-
-    <div class="bottom">
-      <div class="input-wrap" id="wrap-s8">
-        <input type="email" class="real-input" id="input-s8" placeholder="Введите email">
-        <button class="send-btn" style="background:rgba(12,115,254,0.18);" onclick="sendEmail()">
-          <img src="https://www.figma.com/api/mcp/asset/8feff1cd-3bda-421a-9706-f97d97e0d90c" class="send-btn-bg" alt="">
-          <img src="assets/send.svg" alt="Отправить">
-        </button>
-      </div>
-      <div class="tabbar-area">
-        <div class="tabbar-fade"></div>
-        <div class="tabbar-pills">
-          <div class="tab"><div class="tab-icon"><img src="https://www.figma.com/api/mcp/asset/9f1a20d7-06e3-4cce-9e2b-57bb8a8644a8" alt=""></div><span class="tab-label">Билеты</span></div>
-          <div class="tab"><div class="tab-icon"><img src="https://www.figma.com/api/mcp/asset/f69a9a03-e6c3-4c7e-8c79-b6fb4c8a97e3" alt=""></div><span class="tab-label">Отели</span></div>
-          <div class="tab"><div class="tab-icon"><img src="https://www.figma.com/api/mcp/asset/ecb2b195-80c5-4eaf-87fc-95b8b60f253b" alt=""></div><span class="tab-label">Впечатления</span></div>
-          <div class="tab"><div class="tab-icon"><img src="https://www.figma.com/api/mcp/asset/091cc7b2-793d-4871-b138-e7b08a523734" alt=""></div><span class="tab-label">Ассистент</span></div>
-          <div class="tab active"><div class="tab-icon"><img src="https://www.figma.com/api/mcp/asset/290aa6f9-1221-4d05-a45f-85d41ab170c1" alt=""></div><span class="tab-label">Профиль</span></div>
-        </div>
-      </div>
-    </div>
-  </div>
-  <!-- /s8 -->
-
-
-  <!-- ==================== S9: FINAL (NEW EMAIL) ==================== -->
-  <div class="screen" id="s9">
-    <nav class="navbar">
-      <div class="statusbar">
-        <span class="statusbar-time">9:41</span>
-        <div class="statusbar-icons"><img src="https://www.figma.com/api/mcp/asset/4dcd840e-58ad-41b7-a22e-c1ffc55c3cff" alt=""></div>
-      </div>
-      <div class="toolbar">
-        <div class="toolbar-left">
-          <button class="back-btn" onclick="restart()">
-            <div class="back-btn-glass"></div>
-            <img src="https://www.figma.com/api/mcp/asset/5b3db11f-e229-4d4c-9ce1-dee6c1d02c5f" alt="Назад">
+          <button class="tab" type="button">
+            <img class="icon-24" src="./assets/icons/tabbar/hotel.svg" alt="" />
+            <span>Отели</span>
           </button>
-        </div>
-        <div class="toolbar-title">
-          <div class="toolbar-title-main">Умная поддержка</div>
-          <div class="toolbar-title-sub">Первая версия нейросети</div>
-        </div>
-      </div>
-    </nav>
-
-    <div class="chat" id="chat-s9">
-      <!-- User: new email (dynamic from s8 input) -->
-      <div class="msg-group msg-group-user">
-        <div class="bubble bubble-user"><span id="user-email-s9">ivanovsuper1@yandex.ru</span></div>
-        <img class="tail" src="https://www.figma.com/api/mcp/asset/1590b278-2e77-469e-adad-f43bc7b9e782" alt="">
-      </div>
-
-      <!-- Bot: confirmation -->
-      <div class="msg-group msg-group-bot">
-        <div class="bubble bubble-bot" style="max-width:358px;">
-          <p>Почту изменили и передали ваш вопрос в поддержку.</p>
-          <p>Всё изучим и в течение 4–5 дней ответим на почту <strong id="confirm-email-s9">ivanovsuper1@yandex.ru</strong>.</p>
-          <p>Не забудьте проверить папку «Спам», чтобы не пропустить наше письмо. Обращение появится также в чате, если вспомните важные детали, их можно будет дописать прямо там.</p>
-        </div>
-        <img class="tail" src="https://www.figma.com/api/mcp/asset/9d2a3b73-a3d0-464a-8587-dc7f91b2aeac" alt="">
-      </div>
-
-      <div class="gap-16"></div>
-    </div>
-
-    <div class="bottom">
-      <div class="input-wrap" style="opacity:0.5;pointer-events:none;">
-        <span class="input-placeholder">Напишите что-нибудь</span>
-        <button class="send-btn">
-          <img src="https://www.figma.com/api/mcp/asset/8feff1cd-3bda-421a-9706-f97d97e0d90c" class="send-btn-bg" alt="">
-          <img src="assets/send.svg" alt="Отправить">
-        </button>
-      </div>
-      <div class="tabbar-area">
-        <div class="tabbar-fade"></div>
-        <div class="tabbar-pills">
-          <div class="tab"><div class="tab-icon"><img src="https://www.figma.com/api/mcp/asset/9f1a20d7-06e3-4cce-9e2b-57bb8a8644a8" alt=""></div><span class="tab-label">Билеты</span></div>
-          <div class="tab"><div class="tab-icon"><img src="https://www.figma.com/api/mcp/asset/f69a9a03-e6c3-4c7e-8c79-b6fb4c8a97e3" alt=""></div><span class="tab-label">Отели</span></div>
-          <div class="tab"><div class="tab-icon"><img src="https://www.figma.com/api/mcp/asset/ecb2b195-80c5-4eaf-87fc-95b8b60f253b" alt=""></div><span class="tab-label">Впечатления</span></div>
-          <div class="tab"><div class="tab-icon"><img src="https://www.figma.com/api/mcp/asset/091cc7b2-793d-4871-b138-e7b08a523734" alt=""></div><span class="tab-label">Ассистент</span></div>
-          <div class="tab active"><div class="tab-icon"><img src="https://www.figma.com/api/mcp/asset/290aa6f9-1221-4d05-a45f-85d41ab170c1" alt=""></div><span class="tab-label">Профиль</span></div>
-        </div>
-      </div>
-    </div>
-  </div>
-  <!-- /s9 -->
-
-
-  <!-- ==================== S9b: FINAL (ORIGINAL EMAIL) ==================== -->
-  <div class="screen" id="s9b">
-    <nav class="navbar">
-      <div class="statusbar">
-        <span class="statusbar-time">9:41</span>
-        <div class="statusbar-icons"><img src="https://www.figma.com/api/mcp/asset/4dcd840e-58ad-41b7-a22e-c1ffc55c3cff" alt=""></div>
-      </div>
-      <div class="toolbar">
-        <div class="toolbar-left">
-          <button class="back-btn" onclick="restart()">
-            <div class="back-btn-glass"></div>
-            <img src="https://www.figma.com/api/mcp/asset/5b3db11f-e229-4d4c-9ce1-dee6c1d02c5f" alt="Назад">
+          <button class="tab" type="button">
+            <img class="icon-24" src="./assets/icons/tabbar/more.svg" alt="" />
+            <span>Короче</span>
           </button>
-        </div>
-        <div class="toolbar-title">
-          <div class="toolbar-title-main">Умная поддержка</div>
-          <div class="toolbar-title-sub">Первая версия нейросети</div>
-        </div>
-      </div>
-    </nav>
+          <button class="tab" type="button">
+            <img class="icon-24" src="./assets/icons/tabbar/favorite.svg" alt="" />
+            <span>Избранное</span>
+          </button>
+          <button class="tab profile-tab" id="profileTab" type="button">
+            <svg class="icon-24" viewBox="0 0 30 30" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+              <path d="M10.0769 7.21964C10 7.60603 10 8.07069 10 9V11C10 11.9293 10 12.394 10.0769 12.7804C10.3925 14.3671 11.6329 15.6075 13.2196 15.9231C13.606 16 14.0707 16 15 16C15.9293 16 16.394 16 16.7804 15.9231C18.3671 15.6075 19.6075 14.3671 19.9231 12.7804C20 12.394 20 11.9293 20 11V9C20 8.07069 20 7.60603 19.9231 7.21964C19.6075 5.63288 18.3671 4.39249 16.7804 4.07686C16.394 4 15.9293 4 15 4C14.0707 4 13.606 4 13.2196 4.07686C11.6329 4.39249 10.3925 5.63288 10.0769 7.21964Z" fill="currentColor"/>
+              <path d="M13 18C9.13401 18 6 21.134 6 25H24C24 21.134 20.866 18 17 18H13Z" fill="currentColor"/>
+            </svg>
+            <span>Профиль</span>
+          </button>
+          <div class="home-indicator"></div>
+        </nav>
 
-    <div class="chat" id="chat-s9b">
-      <!-- Bot: email question (greyed) -->
-      <div class="msg-group msg-group-bot">
-        <div class="bubble bubble-bot" style="max-width:358px;opacity:0.5;">
-          Последнее уточнение. Ответ оператора придёт на почту <strong>ivanov.ivan@yandex.ru</strong>. Отправляем туда или укажете другой адрес?
-        </div>
-        <img class="tail" style="opacity:0.5;" src="https://www.figma.com/api/mcp/asset/9d2a3b73-a3d0-464a-8587-dc7f91b2aeac" alt="">
-      </div>
+        <aside class="orders-modal" id="ordersModal" aria-hidden="true">
+          <div class="orders-backdrop" id="ordersBackdrop"></div>
+          <div class="orders-sheet" role="dialog" aria-modal="true" aria-labelledby="ordersTitle">
+            <div class="orders-statusbar"></div>
+            <div class="orders-handle" aria-hidden="true"></div>
+            <div class="orders-navbar">
+              <button class="orders-close" id="ordersCloseBtn" type="button" aria-label="Закрыть">
+                <svg viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                  <path d="M1.5 1.5L10.5 10.5M10.5 1.5L1.5 10.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                </svg>
+              </button>
+            </div>
+            <h2 class="orders-title" id="ordersTitle">Мои заказы</h2>
+            <div class="orders-segmented" role="tablist">
+              <button class="orders-segment is-active" type="button" role="tab" id="ordersTabActive" aria-selected="true" aria-controls="ordersPanelActive">
+                Активные <span class="orders-segment-count">1</span>
+              </button>
+              <button class="orders-segment" type="button" role="tab" id="ordersTabArchive" aria-selected="false" aria-controls="ordersPanelArchive">
+                Архивные <span class="orders-segment-count">0</span>
+              </button>
+            </div>
+            <div class="orders-list" id="ordersPanelActive" role="tabpanel" aria-labelledby="ordersTabActive">
+              <button class="order-card order-card-button" type="button" data-action="select-order" data-order-title="Москва — Владивосток" data-order-date="4 ноя, вт">
+                <span class="order-badge">Билет от Авиасейлс</span>
+                <div class="order-card-row">
+                  <div class="order-details">
+                    <p class="order-title">Москва — Владивосток</p>
+                    <p class="order-date">4 ноя, вт</p>
+                  </div>
+                  <span class="order-airline-logo" aria-hidden="true">
+                    <img src="./assets/icons/orders/airline-aeroflot.png" alt="" />
+                  </span>
+                </div>
+              </button>
+            </div>
+            <div class="orders-empty" id="ordersPanelArchive" role="tabpanel" aria-labelledby="ordersTabArchive" hidden>
+              <img class="orders-empty-icon" src="./assets/icons/orders/looking-center-left.svg" alt="" />
+              <div class="orders-empty-text">
+                <p class="orders-empty-title">Архивных заказов пока нет</p>
+                <p class="orders-empty-desc">Здесь будут все завершённые и отменённые заказы</p>
+              </div>
+            </div>
+            <div class="orders-home-indicator" aria-hidden="true"><span></span></div>
+          </div>
+        </aside>
 
-      <!-- User chip -->
-      <div class="msg-group msg-group-user">
-        <div class="bubble bubble-user" style="max-width:max-content">Отправить на неё</div>
-        <img class="tail" src="https://www.figma.com/api/mcp/asset/1590b278-2e77-469e-adad-f43bc7b9e782" alt="">
-      </div>
-
-      <!-- Bot: confirmation -->
-      <div class="msg-group msg-group-bot">
-        <div class="bubble bubble-bot" style="max-width:358px;">
-          <p>Готово! Передали ваш вопрос в поддержку.</p>
-          <p>Всё изучим и в течение 4–5 дней ответим на почту <strong>ivanov.ivan@yandex.ru</strong>.</p>
-          <p>Не забудьте проверить папку «Спам», чтобы не пропустить наше письмо. Обращение появится также в чате, если вспомните важные детали, их можно будет дописать прямо там.</p>
-        </div>
-        <img class="tail" src="https://www.figma.com/api/mcp/asset/9d2a3b73-a3d0-464a-8587-dc7f91b2aeac" alt="">
-      </div>
-
-      <div class="gap-16"></div>
-    </div>
-
-    <div class="bottom">
-      <div class="input-wrap" style="opacity:0.5;pointer-events:none;">
-        <span class="input-placeholder">Напишите что-нибудь</span>
-        <button class="send-btn">
-          <img src="https://www.figma.com/api/mcp/asset/8feff1cd-3bda-421a-9706-f97d97e0d90c" class="send-btn-bg" alt="">
-          <img src="assets/send.svg" alt="Отправить">
-        </button>
-      </div>
-      <div class="tabbar-area">
-        <div class="tabbar-fade"></div>
-        <div class="tabbar-pills">
-          <div class="tab"><div class="tab-icon"><img src="https://www.figma.com/api/mcp/asset/9f1a20d7-06e3-4cce-9e2b-57bb8a8644a8" alt=""></div><span class="tab-label">Билеты</span></div>
-          <div class="tab"><div class="tab-icon"><img src="https://www.figma.com/api/mcp/asset/f69a9a03-e6c3-4c7e-8c79-b6fb4c8a97e3" alt=""></div><span class="tab-label">Отели</span></div>
-          <div class="tab"><div class="tab-icon"><img src="https://www.figma.com/api/mcp/asset/ecb2b195-80c5-4eaf-87fc-95b8b60f253b" alt=""></div><span class="tab-label">Впечатления</span></div>
-          <div class="tab"><div class="tab-icon"><img src="https://www.figma.com/api/mcp/asset/091cc7b2-793d-4871-b138-e7b08a523734" alt=""></div><span class="tab-label">Ассистент</span></div>
-          <div class="tab active"><div class="tab-icon"><img src="https://www.figma.com/api/mcp/asset/290aa6f9-1221-4d05-a45f-85d41ab170c1" alt=""></div><span class="tab-label">Профиль</span></div>
-        </div>
-      </div>
-    </div>
-  </div>
-  <!-- /s9b -->
-
-</div><!-- /device -->
-
-
-<!-- ==================== LEGEND ==================== -->
-<div class="legend">
-  <strong>Навигация</strong>
-  <span class="k">←</span> / <span class="k">Backspace</span> назад<br>
-  <span class="k">R</span> начать заново<br>
-  <br>
-  <strong>Ветки флоу</strong>
-  Заказ → Описание → Документы<br>
-  └ <span style="color:#6ea8ff">«Прикрепить файлы»</span> → Email → Финал<br>
-  └ <span style="color:#6ea8ff">«Дополнить»</span> → Email → Финал<br>
-  └ <span style="color:#ff9f9f">Написать текст</span> → Тупик
-</div>
-
-<!-- ==================== SCREEN LABEL ==================== -->
-<div class="screen-label" id="screenLabel">s1</div>
-
-
-<!-- ==================== SCRIPTS ==================== -->
-<script>
-  const SCREENS = {
-    s1:  { label: 'Заказы' },
-    s2:  { label: 'Описание' },
-    s3:  { label: 'Документы' },
-    s5:  { label: 'Тупик' },
-    s6:  { label: 'Дополнение' },
-    s6docs: { label: 'Повтор документов' },
-    s7:  { label: 'Email' },
-    s8:  { label: 'Новая почта' },
-    s9:  { label: 'Готово' },
-    s9b: { label: 'Готово' },
-  };
-
-  const INPUT_IDS = { s2: 'input-s2', s6: 'input-s6', s8: 'input-s8' };
-
-  let current = 's1';
-  let history = [];
-  const flash = document.getElementById('flash');
-  const label = document.getElementById('screenLabel');
-
-  function scrollBottom(id) {
-    const chat = document.getElementById('chat-' + id);
-    if (chat) chat.scrollTop = chat.scrollHeight;
-  }
-
-  function animateIn(el) {
-    if (!el) return;
-    el.classList.remove('animate-in');
-    // Force reflow to restart CSS animation
-    void el.offsetWidth;
-    el.classList.add('animate-in');
-  }
-
-  function focusInput(id) {
-    const inputId = INPUT_IDS[id];
-    if (inputId) {
-      const el = document.getElementById(inputId);
-      if (el) setTimeout(() => el.focus(), 200);
-    }
-  }
-
-  function goto(id) {
-    if (id === current) return;
-    history.push(current);
-    flash.classList.add('in');
-    setTimeout(() => {
-      document.getElementById(current).classList.remove('active');
-      document.getElementById(id).classList.add('active');
-      current = id;
-      label.textContent = id + ' · ' + (SCREENS[id]?.label || '');
-      flash.classList.remove('in');
-      scrollBottom(id);
-      focusInput(id);
-      const suggests = document.querySelector('#' + id + ' .suggests');
-      if (suggests) animateIn(suggests);
-    }, 120);
-  }
-
-  function goBack() {
-    if (history.length === 0) return;
-    const prev = history.pop();
-    flash.classList.add('in');
-    setTimeout(() => {
-      document.getElementById(current).classList.remove('active');
-      document.getElementById(prev).classList.add('active');
-      current = prev;
-      label.textContent = prev + ' · ' + (SCREENS[prev]?.label || '');
-      flash.classList.remove('in');
-      scrollBottom(prev);
-      focusInput(prev);
-    }, 120);
-  }
-
-  function restart() {
-    history = [];
-    // Clear dynamic content
-    const inject = document.getElementById('inject-s7-msg');
-    if (inject) inject.innerHTML = '';
-    const orderHolder = document.getElementById('selected-order-s2');
-    const orderText = document.getElementById('selected-order-text');
-    if (orderHolder) orderHolder.style.display = 'none';
-    if (orderText) orderText.textContent = '';
-    goto('s1');
-  }
-
-  function escapeHtml(str) {
-    return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-  }
-
-  function autoResize(ta) {
-    ta.style.height = 'auto';
-    ta.style.height = Math.min(ta.scrollHeight, 120) + 'px';
-  }
-
-  function selectOrder(route, dates) {
-    const holder = document.getElementById('selected-order-s2');
-    const text = document.getElementById('selected-order-text');
-    if (holder && text) {
-      text.innerHTML = escapeHtml(route) + '<br>' + escapeHtml(dates);
-      holder.style.display = 'flex';
-      animateIn(holder);
-    }
-    goto('s2');
-  }
-
-  function sendComment(screenId) {
-    const textarea = document.getElementById('input-' + screenId);
-    const text = textarea.value.trim();
-    if (!text) return;
-
-    if (screenId === 's2') {
-      document.querySelector('#user-msg-s3 .bubble-user').textContent = text;
-      goto('s3');
-      setTimeout(() => animateIn(document.getElementById('user-msg-s3')), 140);
-    } else if (screenId === 's6') {
-      const bubble = document.querySelector('#user-msg-s6docs .bubble-user');
-      if (bubble) bubble.textContent = text;
-      goto('s6docs');
-      setTimeout(() => animateIn(document.getElementById('user-msg-s6docs')), 140);
-    }
-
-    textarea.value = '';
-    textarea.style.height = '';
-  }
-
-  function sendEmail() {
-    const input = document.getElementById('input-s8');
-    const email = input.value.trim();
-    if (!email) return;
-    document.getElementById('user-email-s9').textContent = email;
-    document.getElementById('confirm-email-s9').textContent = email;
-    goto('s9');
-  }
-
-  // Auto-resize + Enter-to-send for comment textareas
-  ['s2', 's6'].forEach(sid => {
-    const ta = document.getElementById('input-' + sid);
-    if (!ta) return;
-    ta.addEventListener('input', () => autoResize(ta));
-    ta.addEventListener('keydown', e => {
-      if (e.key === 'Enter' && !e.shiftKey) {
-        e.preventDefault();
-        sendComment(sid);
-      }
-    });
-  });
-
-  // Enter-to-send for email input
-  const emailInput = document.getElementById('input-s8');
-  if (emailInput) {
-    emailInput.addEventListener('keydown', e => {
-      if (e.key === 'Enter') { e.preventDefault(); sendEmail(); }
-    });
-  }
-
-  // Keyboard shortcuts — skip when focus is in an input/textarea
-  document.addEventListener('keydown', (e) => {
-    const inInput = ['INPUT', 'TEXTAREA'].includes(e.target.tagName);
-    if (e.key === 'ArrowLeft' || e.key === 'Backspace') {
-      if (inInput) return;
-      goBack();
-    }
-    if ((e.key === 'r' || e.key === 'R') && !inInput) restart();
-  });
-
-  scrollBottom('s1');
-</script>
-
-</body>
+        <aside class="email-modal" id="emailModal" aria-hidden="true">
+          <div class="email-backdrop" id="emailBackdrop"></div>
+          <div class="email-sheet" role="dialog" aria-modal="true" aria-labelledby="emailModalTitle">
+            <div class="email-sheet-head">
+              <span class="email-handle" aria-hidden="true"></span>
+              <h2 class="email-title" id="emailModalTitle">Изменение почты</h2>
+              <button class="email-close" id="emailCloseBtn" type="button" aria-label="Закрыть">
+                <svg viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                  <path d="M1.5 1.5L10.5 10.5M10.5 1.5L1.5 10.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                </svg>
+              </button>
+            </div>
+            <div class="email-content email-content-form" id="emailContentForm">
+              <p class="email-desc">Напишите новый адрес почты — мы привяжем её к заказу и отправим туда билет</p>
+              <div class="email-input-wrap" id="emailInputWrap">
+                <label class="email-input-label" for="emailInput">Почта</label>
+                <input class="email-input" id="emailInput" type="email" placeholder=" " autocomplete="email" />
+              </div>
+              <button class="email-confirm-btn" id="emailConfirmBtn" type="button" disabled>Подтвердить</button>
+            </div>
+            <div class="email-content email-content-sent" id="emailContentSent" hidden>
+              <p class="email-sent-text">Готово! Мы отправили письмо на почту <strong id="emailSentAddress">k.konstantinopol@yandex.ru</strong></p>
+              <p class="email-sent-text">Нажмите на кнопку в письме, чтобы подтвердить новый адрес. Если не сможете найти письмо, проверьте папку «Спам».</p>
+            </div>
+            <div class="email-home-indicator" aria-hidden="true"><span></span></div>
+          </div>
+        </aside>
+      </section>
+    </main>
+    <script type="module" src="./app.js"></script>
+  </body>
 </html>
