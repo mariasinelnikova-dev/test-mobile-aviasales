@@ -58,7 +58,7 @@ function hideSnackbar() {
 
 let conversationState = null;
 
-const EMAIL_REGEX = /[\w.+-]+@[\w-]+\.[\w.-]+/i;
+const EMAIL_REGEX = /\S*@\S*/;
 
 const conversationData = {
   topic: null,
