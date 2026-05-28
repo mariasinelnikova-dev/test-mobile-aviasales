@@ -65,6 +65,9 @@ const conversationData = {
   // Topic in the instrumental case ("с кем? с чем?"). Used in the bot's
   // confirmation phrase: "У вас вопрос связан с {topicInstrumental}?".
   topicInstrumental: null,
+  // Topic in the accusative case ("про кого? про что?"). Used in the bot's
+  // problem-prompt phrase: "У вас вопрос про {topicAccusative}?".
+  topicAccusative: null,
   orderInfo: null,
   email: null,
   comment: null,
@@ -76,6 +79,7 @@ const BOT_REPLIES = [
     render: () => {
       conversationData.topic = "Добавить багаж";
       conversationData.topicInstrumental = "добавлением багажа";
+      conversationData.topicAccusative = "добавление багажа";
       appendBotBubble(
         "Вы можете добавить багаж до покупки билета, если на сайте продавца есть специальный ползунок. Если вы уже приобрели билет, добавление багажа возможно на сайте продавца после перехода на него. Обратитесь к продавцу билета или напишите его название."
       );
@@ -87,6 +91,7 @@ const BOT_REPLIES = [
     render: () => {
       conversationData.topic = "Комиссия по возврату билета";
       conversationData.topicInstrumental = "комиссией по возврату билета";
+      conversationData.topicAccusative = "комиссию по возврату билета";
       appendBotBubble(
         "Возврат билета зависит от тарифа и правил авиакомпании. Комиссия может варьироваться в зависимости от условий вашего тарифа. Рекомендуем связаться с продавцом билета для получения точной информации о возможной комиссии за возврат."
       );
@@ -121,23 +126,13 @@ const BOT_REPLIES = [
     placeholder: "Напишите почту",
   },
   {
-    match: /москва\s*[-—]\s*владивосток/i,
+    // Triggered only via `selectOrderFromCard`, which sets the state before
+    // sending the order title as a user message. Bypasses keyword matching so
+    // order names like "Москва — Владивосток" can't collide with topic regexes.
+    requiresState: "picking-order",
     render: () => {
-      conversationData.email = "maria.kalimullin@aviasales.ru";
-      const topicHtml = escapeHtml(
-        conversationData.topicInstrumental ||
-          (conversationData.topic || "").toLowerCase()
-      );
-      appendBotBubbleHTML(
-        `<p>У вас вопрос связан с <strong>${topicHtml}</strong>?</p>` +
-          '<p>Подробно опишите ситуацию в одном сообщении. Обязательно укажите:</p>' +
-          '<ul class="bot-rich-list">' +
-          '<li>суть проблемы — к примеру, опечатка в данных, покупка места;</li>' +
-          '<li>что нужно сделать — изменить данные, добавить багаж;</li>' +
-          '<li>для какого пассажира и перелёта.</li>' +
-          '</ul>' +
-          '<p><strong>Например:</strong> «Хочу добавить чемодан 20&nbsp;кг на рейс Стамбул — Москва, для пассажира Дешёвых А.&nbsp;Б.»</p>'
-      );
+      conversationData.email = "ivan@yandex.ru";
+      appendProblemPromptBubble();
     },
     placeholder: "Напишите что-нибудь",
     nextState: "awaiting-topic",
@@ -147,20 +142,7 @@ const BOT_REPLIES = [
     render: (userText) => {
       const m = (userText || "").match(EMAIL_REGEX);
       if (m) conversationData.email = m[0];
-      const topicHtml = escapeHtml(
-        conversationData.topicInstrumental ||
-          (conversationData.topic || "").toLowerCase()
-      );
-      appendBotBubbleHTML(
-        `<p>У вас вопрос связан с <strong>${topicHtml}</strong>?</p>` +
-          '<p>Подробно опишите ситуацию в одном сообщении. Обязательно укажите:</p>' +
-          '<ul class="bot-rich-list">' +
-          '<li>суть проблемы — к примеру, опечатка в данных, покупка места;</li>' +
-          '<li>что нужно сделать — изменить данные, добавить багаж;</li>' +
-          '<li>для какого пассажира и перелёта.</li>' +
-          '</ul>' +
-          '<p><strong>Например:</strong> «Хочу добавить чемодан 20&nbsp;кг на рейс Стамбул — Москва, для пассажира Дешёвых А.&nbsp;Б.»</p>'
-      );
+      appendProblemPromptBubble();
     },
     placeholder: "Напишите что-нибудь",
     nextState: "awaiting-topic",
@@ -450,6 +432,28 @@ function appendBotBubbleHTML(html) {
 
   chatBubblesEl.appendChild(bubble);
   return bubble;
+}
+
+// Shared "describe your problem" bubble used after the user either picks an
+// order from the in-chat widget / orders modal, or supplies their email when
+// no order is available. Mirrors the design in Figma node 5882:46256.
+function appendProblemPromptBubble() {
+  const accusative =
+    conversationData.topicAccusative ||
+    (conversationData.topic || "").toLowerCase();
+  const greeting = accusative
+    ? `<p>У вас вопрос про <strong>${escapeHtml(accusative)}</strong>?</p>`
+    : "";
+  return appendBotBubbleHTML(
+    greeting +
+      '<p>Подробно опишите ситуацию в одном сообщении. Обязательно укажите:</p>' +
+      '<ul class="bot-rich-list">' +
+      '<li>суть проблемы — к примеру, опечатка в данных, покупка места;</li>' +
+      '<li>что нужно сделать — изменить данные, добавить багаж;</li>' +
+      '<li>для какого пассажира и перелёта.</li>' +
+      '</ul>' +
+      '<p><strong>Например:</strong> «Хочу добавить чемодан 20&nbsp;кг на рейс Стамбул — Москва, для пассажира Дешёвых А.&nbsp;Б.»</p>'
+  );
 }
 
 function appendAttachWidget() {
@@ -836,6 +840,10 @@ function selectOrderFromCard(orderCard) {
   const fromModal = !!orderCard.closest("#ordersModal");
   if (fromModal) setOrdersModal(false);
 
+  // Force the state so the order-picked bot reply triggers regardless of how
+  // the order title reads (e.g. "Москва — Владивосток" would otherwise match
+  // the refund-topic regex via the "владивосток" keyword).
+  conversationState = "picking-order";
   sendUserMessage(`${title}, ${date}`);
 }
 
