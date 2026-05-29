@@ -804,6 +804,7 @@ if (chatSuggestsEl) {
   chatSuggestsEl.addEventListener("click", (event) => {
     const target = event.target instanceof Element ? event.target.closest(".chat-suggest") : null;
     if (!target) return;
+    if (target.classList.contains("chat-suggest-static")) return;
     sendUserMessage(target.textContent || "");
   });
 }

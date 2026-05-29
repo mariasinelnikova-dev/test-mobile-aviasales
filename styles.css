@@ -1832,6 +1832,11 @@ body {
   cursor: pointer;
 }
 
+.chat-suggest-static {
+  cursor: default;
+  opacity: 1;
+}
+
 .support-input {
   flex: 0 0 auto;
   position: relative;
